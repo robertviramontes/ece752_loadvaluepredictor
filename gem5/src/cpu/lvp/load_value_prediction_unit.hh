@@ -22,7 +22,7 @@ class LoadValuePredictionUnit : public SimObject
     LoadClassificationTable* loadClassificationTable;
 
   public:
-    LoadValuePredictionUnit(const LoadValuePredictionUnitParams *p);
+    LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
 
     /**
      * Part of a SimObject's initilaization. Startup is called after all

@@ -6,13 +6,15 @@
  * 
  */
 
-#include "cpu/lvp/load_value_predictor.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 
+#include "base/logging.hh"
+#include "base/trace.hh"
 #include "debug/LVP.hh"
 
 LoadValuePredictionUnit::LoadValuePredictionUnit(LoadValuePredictionUnitParams *params) :
     SimObject(params),
-    loadClassificationTable(params->load_classification_table),
+    loadClassificationTable(params->load_classification_table)
 {
     DPRINTF(LVP, "Created the LVP\n");
     panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
@@ -22,7 +24,7 @@ void
 LoadValuePredictionUnit::startup()
 {
     // Before simulation starts, we need to schedule the event
-    schedule(event, latency);
+    DPRINTF(LVP, "Starting the LVP");
 }
 
 LoadValuePredictionUnit*

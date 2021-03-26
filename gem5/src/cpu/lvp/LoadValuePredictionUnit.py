@@ -17,4 +17,7 @@ class LoadClassificationTable(SimObject):
 # class ConstantVerificationUnit(SimObject):
  
 class LoadValuePredictionUnit(SimObject):
+    type = 'LoadValuePredictionUnit'
+    cxx_header = "cpu/lvp/load_value_prediction_unit.hh"
+
     load_classification_table = Param.LoadClassificationTable("A load classification table")

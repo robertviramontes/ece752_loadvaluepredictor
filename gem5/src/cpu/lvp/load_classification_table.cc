@@ -34,12 +34,13 @@
 #include "debug/LCT.hh"
 
 LoadClassificationTable::LoadClassificationTable(const LoadClassificationTableParams *params)
-    : BPredUnit(params),
+    : SimObject(params),
       localPredictorSize(params->localPredictorSize),
       localCtrBits(params->localCtrBits),
       localPredictorSets(localPredictorSize / localCtrBits),
       localCtrs(localPredictorSets, SatCounter(localCtrBits, 0)),
-      indexMask(localPredictorSets - 1)
+      indexMask(localPredictorSets - 1),
+      instShiftAmt(0) // TODO what is correct???
 {
     if (!isPowerOf2(localPredictorSize)) {
         fatal("Invalid local predictor size!\n");
@@ -60,59 +61,59 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
             instShiftAmt);
 }
 
-void
-LoadClassificationTable::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
-{
-// Place holder for a function that is called to update predictor history when
-// a BTB entry is invalid or not found.
-}
+// void
+// LoadClassificationTable::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
+// {
+// // Place holder for a function that is called to update predictor history when
+// // a BTB entry is invalid or not found.
+// }
 
 
-bool
-LoadClassificationTable::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
-{
-    bool taken;
-    unsigned local_predictor_idx = getLocalIndex(branch_addr);
+// bool
+// LoadClassificationTable::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
+// {
+//     bool taken;
+//     unsigned local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(LCT, "Looking up index %#x\n",
-            local_predictor_idx);
+//     DPRINTF(LCT, "Looking up index %#x\n",
+//             local_predictor_idx);
 
-    uint8_t counter_val = localCtrs[local_predictor_idx];
+//     uint8_t counter_val = localCtrs[local_predictor_idx];
 
-    DPRINTF(LCT, "prediction is %i.\n",
-            (int)counter_val);
+//     DPRINTF(LCT, "prediction is %i.\n",
+//             (int)counter_val);
 
-    taken = getPrediction(counter_val);
+//     taken = getPrediction(counter_val);
 
-    return taken;
-}
+//     return taken;
+// }
 
-void
-LoadClassificationTable::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget)
-{
-    assert(bp_history == NULL);
-    unsigned local_predictor_idx;
+// void
+// LoadClassificationTable::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
+//                 bool squashed, const StaticInstPtr & inst, Addr corrTarget)
+// {
+//     assert(bp_history == NULL);
+//     unsigned local_predictor_idx;
 
-    // No state to restore, and we do not update on the wrong
-    // path.
-    if (squashed) {
-        return;
-    }
+//     // No state to restore, and we do not update on the wrong
+//     // path.
+//     if (squashed) {
+//         return;
+//     }
 
-    // Update the local predictor.
-    local_predictor_idx = getLocalIndex(branch_addr);
+//     // Update the local predictor.
+//     local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(LCT, "Looking up index %#x\n", local_predictor_idx);
+//     DPRINTF(LCT, "Looking up index %#x\n", local_predictor_idx);
 
-    if (taken) {
-        DPRINTF(Fetch, "Branch updated as taken.\n");
-        localCtrs[local_predictor_idx]++;
-    } else {
-        DPRINTF(Fetch, "Branch updated as not taken.\n");
-        localCtrs[local_predictor_idx]--;
-    }
-}
+//     if (taken) {
+//         DPRINTF(LCT, "Branch updated as taken.\n");
+//         localCtrs[local_predictor_idx]++;
+//     } else {
+//         DPRINTF(LCT, "Branch updated as not taken.\n");
+//         localCtrs[local_predictor_idx]--;
+//     }
+// }
 
 inline
 bool
@@ -129,13 +130,13 @@ LoadClassificationTable::getLocalIndex(Addr &branch_addr)
     return (branch_addr >> instShiftAmt) & indexMask;
 }
 
-void
-LoadClassificationTable::uncondBranch(ThreadID tid, Addr pc, void *&bp_history)
-{
-}
+// void
+// LoadClassificationTable::uncondBranch(ThreadID tid, Addr pc, void *&bp_history)
+// {
+// }
 
 LoadClassificationTable*
 LoadClassificationTableParams::create()
 {
-    return new LocalBP(this);
+    return new LoadClassificationTable(this);
 }

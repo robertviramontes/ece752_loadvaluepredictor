@@ -28,7 +28,6 @@
 Import('*')
 
 SimObject('LoadValuePredictionUnit.py')
-SimObject('LoadClassificationTable.py')
 
 Source('load_value_prediction_unit.cc')
 Source('load_classification_table.cc')
