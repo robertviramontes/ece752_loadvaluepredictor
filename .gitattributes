@@ -1,0 +1,1 @@
+Benchmarks/spec2006_apps/* filter=lfs diff=lfs merge=lfs -text
