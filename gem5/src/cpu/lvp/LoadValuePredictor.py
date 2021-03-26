@@ -18,5 +18,5 @@ class LoadClassificationTable(SimObject):
 
 # class ConstantVerificationUnit(SimObject):
  
-# class LoadValePredictionUnit(SimObject):
+# class LoadValuePredictionUnit(SimObject):
     load_classification_table = Param.LoadClassificationTable("A load classification table")
