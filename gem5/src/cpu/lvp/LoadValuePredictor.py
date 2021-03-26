@@ -7,12 +7,10 @@ from m5.SimObject import SimObject
 
 class LoadClassificationTable(SimObject):
     type = 'LoadClassificationTable'
-    cxx_header = "cpu/lvp/lct.hh"
+    cxx_header = "cpu/lvp/load_classification_table.hh"
 
     localPredictorSize = Param.Unsigned(512, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
-
-    goodbye_object = Param.GoodbyeObject("A goodbye object")
 
 # class LoadValuePredictionTable(SimObject):
 

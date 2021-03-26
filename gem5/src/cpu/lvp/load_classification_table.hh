@@ -14,7 +14,7 @@
 #include "base/sat_counter.hh"
 #include "base/types.hh"
 #include "cpu/pred/bpred_unit.hh"
-#include "params/LocalBP.hh"
+#include "params/LoadClassificationTable.hh"
 
 /**
  * Implements a local predictor that uses the PC to index into a table of
@@ -29,7 +29,7 @@ class LoadClassificationTable : public BPredUnit
     /**
      * Default branch predictor constructor.
      */
-    LocalBP(const LocalBPParams *params);
+    LoadClassificationTable(const LoadClassificationTableParams *params);
 
     virtual void uncondBranch(ThreadID tid, Addr pc, void * &bp_history);
 

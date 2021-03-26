@@ -26,12 +26,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cpu/pred/2bit_local.hh"
+#include "cpu/lvp/load_classification_table.hh"
 
 #include "base/intmath.hh"
 #include "base/logging.hh"
 #include "base/trace.hh"
-#include "debug/Fetch.hh"
+#include "debug/LCT.hh"
 
 LocalBP::LocalBP(const LocalBPParams *params)
     : BPredUnit(params),

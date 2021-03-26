@@ -12,7 +12,7 @@
 #include <string>
 
 #include "cpu/lvp/load_classification_table.hh"
-// #include "params/lvp.hh"
+#include "params/LoadValuePredictionUnit.hh"
 #include "sim/sim_object.hh"
 
 class LoadValuePredictionUnit : public SimObject
@@ -22,7 +22,7 @@ class LoadValuePredictionUnit : public SimObject
     LoadClassificationTable* loadClassificationTable;
 
   public:
-    LoadValuePredictionUnit(LoadValuePredictionUnit *p);
+    LoadValuePredictionUnit(const LoadValuePredictionUnitParams *p);
 
     /**
      * Part of a SimObject's initilaization. Startup is called after all

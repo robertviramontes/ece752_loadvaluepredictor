@@ -8,14 +8,14 @@
 
 #include "cpu/lvp/load_value_predictor.hh"
 
-#include "debug/HelloExample.hh"
+#include "debug/LVP.hh"
 
-LoadValuePredictionUnit::LoadValuePredictionUnit(LoadClassificationTableParams *params) :
+LoadValuePredictionUnit::LoadValuePredictionUnit(LoadValuePredictionUnitParams *params) :
     SimObject(params),
-    loadClassificationTable(params->goodbye_object),
+    loadClassificationTable(params->load_classification_table),
 {
-    DPRINTF(HelloExample, "Created the hello object\n");
-    panic_if(!goodbye, "HelloObject must have a non-null GoodbyeObject");
+    DPRINTF(LVP, "Created the LVP\n");
+    panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
 }
 
 void
