@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Robert Viramontes
 # Created: March 25, 2021
+# Based on the learning/part2/simpleobject 
 
 from m5.params import *
 from m5.SimObject import SimObject

@@ -1,7 +1,7 @@
 /*
  * Robert Viramontes
  * Created March 26, 2021
- * Based on the 2bit_local branch predictor provided with the gem5 source. 
+ * Based on the learning/part2/simpleobject 
  * 
  * 
  */
