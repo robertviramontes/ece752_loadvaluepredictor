@@ -33,7 +33,7 @@
 #include "base/trace.hh"
 #include "debug/LCT.hh"
 
-LocalBP::LocalBP(const LocalBPParams *params)
+LoadClassificationTable::LoadClassificationTable(const LoadClassificationTableParams *params)
     : BPredUnit(params),
       localPredictorSize(params->localPredictorSize),
       localCtrBits(params->localCtrBits),
@@ -49,19 +49,19 @@ LocalBP::LocalBP(const LocalBPParams *params)
         fatal("Invalid number of local predictor sets! Check localCtrBits.\n");
     }
 
-    DPRINTF(Fetch, "index mask: %#x\n", indexMask);
+    DPRINTF(LCT, "index mask: %#x\n", indexMask);
 
-    DPRINTF(Fetch, "local predictor size: %i\n",
+    DPRINTF(LCT, "local predictor size: %i\n",
             localPredictorSize);
 
-    DPRINTF(Fetch, "local counter bits: %i\n", localCtrBits);
+    DPRINTF(LCT, "local counter bits: %i\n", localCtrBits);
 
-    DPRINTF(Fetch, "instruction shift amount: %i\n",
+    DPRINTF(LCT, "instruction shift amount: %i\n",
             instShiftAmt);
 }
 
 void
-LocalBP::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
+LoadClassificationTable::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
 {
 // Place holder for a function that is called to update predictor history when
 // a BTB entry is invalid or not found.
@@ -69,17 +69,17 @@ LocalBP::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
 
 
 bool
-LocalBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
+LoadClassificationTable::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
 {
     bool taken;
     unsigned local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(Fetch, "Looking up index %#x\n",
+    DPRINTF(LCT, "Looking up index %#x\n",
             local_predictor_idx);
 
     uint8_t counter_val = localCtrs[local_predictor_idx];
 
-    DPRINTF(Fetch, "prediction is %i.\n",
+    DPRINTF(LCT, "prediction is %i.\n",
             (int)counter_val);
 
     taken = getPrediction(counter_val);
@@ -88,7 +88,7 @@ LocalBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
 }
 
 void
-LocalBP::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
+LoadClassificationTable::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
                 bool squashed, const StaticInstPtr & inst, Addr corrTarget)
 {
     assert(bp_history == NULL);
@@ -103,7 +103,7 @@ LocalBP::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(Fetch, "Looking up index %#x\n", local_predictor_idx);
+    DPRINTF(LCT, "Looking up index %#x\n", local_predictor_idx);
 
     if (taken) {
         DPRINTF(Fetch, "Branch updated as taken.\n");
@@ -116,7 +116,7 @@ LocalBP::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
 
 inline
 bool
-LocalBP::getPrediction(uint8_t &count)
+LoadClassificationTable::getPrediction(uint8_t &count)
 {
     // Get the MSB of the count
     return (count >> (localCtrBits - 1));
@@ -124,18 +124,18 @@ LocalBP::getPrediction(uint8_t &count)
 
 inline
 unsigned
-LocalBP::getLocalIndex(Addr &branch_addr)
+LoadClassificationTable::getLocalIndex(Addr &branch_addr)
 {
     return (branch_addr >> instShiftAmt) & indexMask;
 }
 
 void
-LocalBP::uncondBranch(ThreadID tid, Addr pc, void *&bp_history)
+LoadClassificationTable::uncondBranch(ThreadID tid, Addr pc, void *&bp_history)
 {
 }
 
-LocalBP*
-LocalBPParams::create()
+LoadClassificationTable*
+LoadClassificationTableParams::create()
 {
     return new LocalBP(this);
 }

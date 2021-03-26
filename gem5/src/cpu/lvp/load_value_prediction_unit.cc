@@ -26,7 +26,7 @@ LoadValuePredictionUnit::startup()
 }
 
 LoadValuePredictionUnit*
-LoadValuePredictionUnit::create()
+LoadValuePredictionUnitParams::create()
 {
     return new LoadValuePredictionUnit(this);
 }
