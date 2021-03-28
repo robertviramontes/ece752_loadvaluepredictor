@@ -18,7 +18,7 @@
 struct LvptResult {
     LctResult taken;
     uint64_t value;
-}
+};
 
 class LoadValuePredictionUnit : public SimObject
 {

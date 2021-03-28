@@ -13,8 +13,8 @@
 
 #include "base/sat_counter.hh"
 #include "base/types.hh"
+#include "cpu/static_inst.hh"
 #include "sim/sim_object.hh"
-#include "static_inst.hh"
 
 #include "enums.hh"
 #include "params/LoadClassificationTable.hh"
