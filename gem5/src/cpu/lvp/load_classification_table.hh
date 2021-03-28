@@ -36,19 +36,19 @@ class LoadClassificationTable : public SimObject
 
     /**
      * Looks up the given instruction address in the LCT and returns
-     * a true/false value as to whether it is taken.
-     * @param branch_addr The address of the branch to look up.
+     * a LctResult that indicates unpredictable, predictable, or constant.
+     * @param inst_addr The address of the instruction to look up.
      * @param bp_history Pointer to any bp history state.
      * @return Whether or not the branch is taken.
      */
-    LctResult lookup(ThreadID tid, Addr branch_addr, void * &bp_history);
+    LctResult lookup(ThreadID tid, Addr inst_addr, void * &bp_history);
 
     /**
      * Updates the branch predictor with the actual result of a branch.
-     * @param branch_addr The address of the branch to update.
+     * @param inst_addr The address of the instruction to update.
      * @param taken Whether or not the branch was taken.
      */
-    void update(ThreadID tid, Addr branch_addr, bool prediction_correct,
+    void update(ThreadID tid, Addr inst_addr, bool prediction_correct,
                 bool squashed, const StaticInstPtr & inst, Addr corrTarget);
 
     // void squash(ThreadID tid, void *bp_history)
