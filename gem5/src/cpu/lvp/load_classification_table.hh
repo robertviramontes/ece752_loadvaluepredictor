@@ -15,6 +15,7 @@
 #include "base/types.hh"
 #include "sim/sim_object.hh"
 
+#include "enums.hh"
 #include "params/LoadClassificationTable.hh"
 
 /**
@@ -28,29 +29,18 @@ class LoadClassificationTable : public SimObject
 {
   public:
     /**
-     * Default branch predictor constructor.
+     * Build load classfication table.
      */
     LoadClassificationTable(const LoadClassificationTableParams *params);
 
-    // virtual void uncondBranch(ThreadID tid, Addr pc, void * &bp_history);
-
-    // /**
-    //  * Looks up the given address in the branch predictor and returns
-    //  * a true/false value as to whether it is taken.
-    //  * @param branch_addr The address of the branch to look up.
-    //  * @param bp_history Pointer to any bp history state.
-    //  * @return Whether or not the branch is taken.
-    //  */
-    // bool lookup(ThreadID tid, Addr branch_addr, void * &bp_history);
-
-    // /**
-    //  * Updates the branch predictor to Not Taken if a BTB entry is
-    //  * invalid or not found.
-    //  * @param branch_addr The address of the branch to look up.
-    //  * @param bp_history Pointer to any bp history state.
-    //  * @return Whether or not the branch is taken.
-    //  */
-    // void btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history);
+    /**
+     * Looks up the given instruction address in the LCT and returns
+     * a true/false value as to whether it is taken.
+     * @param branch_addr The address of the branch to look up.
+     * @param bp_history Pointer to any bp history state.
+     * @return Whether or not the branch is taken.
+     */
+    LctResult lookup(ThreadID tid, Addr branch_addr, void * &bp_history);
 
     // /**
     //  * Updates the branch predictor with the actual result of a branch.
@@ -65,12 +55,12 @@ class LoadClassificationTable : public SimObject
 
   private:
     /**
-     *  Returns the taken/not taken prediction given the value of the
-     *  counter.
+     *  Returns the unpredictable/predictable/constant prediction given 
+     *  the value of the counter.
      *  @param count The value of the counter.
      *  @return The prediction based on the counter value.
      */
-    inline bool getPrediction(uint8_t &count);
+    inline LctResult getPrediction(uint8_t &count);
 
     /** Calculates the local index based on the PC. */
     inline unsigned getLocalIndex(Addr &PC);

@@ -61,32 +61,21 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
             instShiftAmt);
 }
 
-// void
-// LoadClassificationTable::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
-// {
-// // Place holder for a function that is called to update predictor history when
-// // a BTB entry is invalid or not found.
-// }
+LctResult
+LoadClassificationTable::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
+{
+    unsigned local_predictor_idx = getLocalIndex(branch_addr);
 
+    DPRINTF(LCT, "Looking up index %#x\n",
+            local_predictor_idx);
 
-// bool
-// LoadClassificationTable::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
-// {
-//     bool taken;
-//     unsigned local_predictor_idx = getLocalIndex(branch_addr);
+    uint8_t counter_val = localCtrs[local_predictor_idx];
 
-//     DPRINTF(LCT, "Looking up index %#x\n",
-//             local_predictor_idx);
+    DPRINTF(LCT, "prediction is %i.\n",
+            (int)counter_val);
 
-//     uint8_t counter_val = localCtrs[local_predictor_idx];
-
-//     DPRINTF(LCT, "prediction is %i.\n",
-//             (int)counter_val);
-
-//     taken = getPrediction(counter_val);
-
-//     return taken;
-// }
+    return getPrediction(counter_val);
+}
 
 // void
 // LoadClassificationTable::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
@@ -116,11 +105,15 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
 // }
 
 inline
-bool
+LctResult
 LoadClassificationTable::getPrediction(uint8_t &count)
 {
-    // Get the MSB of the count
-    return (count >> (localCtrBits - 1));
+    // If MSB is 0, value is unpredictable
+    // If counter is saturated, value is constant
+    // Otherwise, the value is predictable
+    return (count >> (localCtrBits - 1)) == 0 ? Unpredictable 
+            : count == (power(2, localCtrBits) -1) ? Constant 
+            : Predictable;
 }
 
 inline
@@ -129,11 +122,6 @@ LoadClassificationTable::getLocalIndex(Addr &branch_addr)
 {
     return (branch_addr >> instShiftAmt) & indexMask;
 }
-
-// void
-// LoadClassificationTable::uncondBranch(ThreadID tid, Addr pc, void *&bp_history)
-// {
-// }
 
 LoadClassificationTable*
 LoadClassificationTableParams::create()
