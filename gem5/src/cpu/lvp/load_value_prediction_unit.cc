@@ -20,6 +20,19 @@ LoadValuePredictionUnit::LoadValuePredictionUnit(LoadValuePredictionUnitParams *
     panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
 }
 
+LvptResult
+LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr, void * &bp_history)
+{
+    auto lctResult = loadClassificationTable->lookup(tid, inst_addr, &bp_history);
+    // TODO Lookup value in the LVPT
+    // auto lvptResult = loadValuePredictionTable->lookup();
+
+    LvptResult result;
+    result.taken = lctResult;
+    // result.value = lvptResult;
+    return result;
+}
+
 void
 LoadValuePredictionUnit::startup()
 {

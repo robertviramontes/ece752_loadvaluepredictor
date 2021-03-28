@@ -15,6 +15,11 @@
 #include "params/LoadValuePredictionUnit.hh"
 #include "sim/sim_object.hh"
 
+struct LvptResult {
+    LctResult taken;
+    uint64_t value;
+}
+
 class LoadValuePredictionUnit : public SimObject
 {
   private:
@@ -23,6 +28,15 @@ class LoadValuePredictionUnit : public SimObject
 
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
+
+    /*
+     * Looks up the given instruction address and returns
+     * a LvptResult with the LctResult and predicted value.
+     * @param inst_addr The address of the instruction to look up.
+     * @param bp_history Pointer to any bp history state.
+     * @return Whether or not the branch is taken.
+     */
+    LvptResult lookup(ThreadID tid, Addr inst_addr, void * &bp_history);
 
     /**
      * Part of a SimObject's initilaization. Startup is called after all
