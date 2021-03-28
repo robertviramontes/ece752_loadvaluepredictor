@@ -14,6 +14,7 @@
 #include "base/sat_counter.hh"
 #include "base/types.hh"
 #include "sim/sim_object.hh"
+#include "static_inst.hh"
 
 #include "enums.hh"
 #include "params/LoadClassificationTable.hh"
@@ -42,13 +43,13 @@ class LoadClassificationTable : public SimObject
      */
     LctResult lookup(ThreadID tid, Addr branch_addr, void * &bp_history);
 
-    // /**
-    //  * Updates the branch predictor with the actual result of a branch.
-    //  * @param branch_addr The address of the branch to update.
-    //  * @param taken Whether or not the branch was taken.
-    //  */
-    // void update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
-    //             bool squashed, const StaticInstPtr & inst, Addr corrTarget);
+    /**
+     * Updates the branch predictor with the actual result of a branch.
+     * @param branch_addr The address of the branch to update.
+     * @param taken Whether or not the branch was taken.
+     */
+    void update(ThreadID tid, Addr branch_addr, bool prediction_correct,
+                bool squashed, const StaticInstPtr & inst, Addr corrTarget);
 
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }
