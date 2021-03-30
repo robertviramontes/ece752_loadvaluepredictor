@@ -41,7 +41,7 @@ class LoadClassificationTable : public SimObject
      * @param bp_history Pointer to any bp history state.
      * @return Whether or not the branch is taken.
      */
-    LctResult lookup(ThreadID tid, Addr inst_addr, void * &bp_history);
+    LctResult lookup(ThreadID tid, Addr inst_addr); //, void * &bp_history);
 
     /**
      * Updates the branch predictor with the actual result of a branch.
