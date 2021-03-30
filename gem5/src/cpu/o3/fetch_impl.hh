@@ -1306,6 +1306,9 @@ DefaultFetch<Impl>::fetch(bool &status_change)
             }
 #endif
 
+            // get the load value prediction for this instruction
+            loadPred->lookup(tid, thisPC.instAddr());
+
             nextPC = thisPC;
 
             // If we're branching after this instruction, quit fetching
