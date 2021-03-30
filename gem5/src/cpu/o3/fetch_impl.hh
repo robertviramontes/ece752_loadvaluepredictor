@@ -79,6 +79,7 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
     : fetchPolicy(params->smtFetchPolicy),
       cpu(_cpu),
       branchPred(nullptr),
+      loadPred(params->loadPred),
       decodeToFetchDelay(params->decodeToFetchDelay),
       renameToFetchDelay(params->renameToFetchDelay),
       iewToFetchDelay(params->iewToFetchDelay),

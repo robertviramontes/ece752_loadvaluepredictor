@@ -45,6 +45,7 @@
 #include "arch/utility.hh"
 #include "base/statistics.hh"
 #include "config/the_isa.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 #include "cpu/pc_event.hh"
 #include "cpu/pred/bpred_unit.hh"
 #include "cpu/timebuf.hh"
@@ -430,6 +431,9 @@ class DefaultFetch
 
     /** BPredUnit. */
     BPredUnit *branchPred;
+
+    /** Load value prediction unit **/
+    LoadValuePredictionUnit *loadPred;
 
     TheISA::PCState pc[Impl::MaxThreads];
 
