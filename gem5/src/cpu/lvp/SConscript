@@ -32,6 +32,7 @@ Import('*')
 SimObject('LoadValuePredictionUnit.py')
 
 Source('load_value_prediction_unit.cc')
+Source('load_value_prediction_table.cc')
 Source('load_classification_table.cc')
 
 DebugFlag('LCT', "For debugging the load classification table")
