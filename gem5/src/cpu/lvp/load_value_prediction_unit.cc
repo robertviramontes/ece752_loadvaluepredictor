@@ -14,22 +14,23 @@
 
 LoadValuePredictionUnit::LoadValuePredictionUnit(LoadValuePredictionUnitParams *params) :
     SimObject(params),
-    loadClassificationTable(params->load_classification_table)
+    loadClassificationTable(params->load_classification_table),
+    loadValuePredictionTable(params->load_value_prediction_table)
 {
     DPRINTF(LVP, "Created the LVP\n");
     panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
+    panic_if(!loadValuePredictionTable, "LVP must have a non-null LVPT");
 }
 
 LvptResult
 LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr, void * &bp_history)
 {
     auto lctResult = loadClassificationTable->lookup(tid, inst_addr, bp_history);
-    // TODO Lookup value in the LVPT
-    // auto lvptResult = loadValuePredictionTable->lookup();
+    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, bp_history);
 
     LvptResult result;
     result.taken = lctResult;
-    // result.value = lvptResult;
+    result.value = lvptResult;
     return result;
 }
 
