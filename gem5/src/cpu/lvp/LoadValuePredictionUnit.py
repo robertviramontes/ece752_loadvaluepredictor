@@ -13,7 +13,12 @@ class LoadClassificationTable(SimObject):
     localPredictorSize = Param.Unsigned(512, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
 
-# class LoadValuePredictionTable(SimObject):
+class LoadValuePredictionTable(SimObject):
+    type = 'LoadValuePredictionTable'
+    cxx_header = "cpu/lvp/load_value_prediction_table.hh"
+
+    entries = Param.Unsigned(1024, "Number of entries in the predicttion table")
+    historyDepth = Param.Unsigned(1, "History depth")
 
 class ConstantVerificationUnit():
     type = 'ConstantVerificationUnit'
@@ -24,3 +29,4 @@ class LoadValuePredictionUnit(SimObject):
     cxx_header = "cpu/lvp/load_value_prediction_unit.hh"
 
     load_classification_table = Param.LoadClassificationTable(LoadClassificationTable(), "A load classification table")
+    load_value_prediction_table = Param.LoadValuePredictionTable(LoadValuePredictionTable(), "A load value prediction table")
