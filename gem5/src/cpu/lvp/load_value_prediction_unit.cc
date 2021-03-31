@@ -26,7 +26,7 @@ LvptResult
 LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr, void * &bp_history)
 {
     auto lctResult = loadClassificationTable->lookup(tid, inst_addr, bp_history);
-    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, bp_history);
+    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr);
 
     LvptResult result;
     result.taken = lctResult;
