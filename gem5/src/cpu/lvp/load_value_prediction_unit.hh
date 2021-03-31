@@ -12,6 +12,7 @@
 #include <string>
 
 #include "cpu/lvp/load_classification_table.hh"
+#include "cpu/lvp/load_value_prediction_table.hh"
 #include "params/LoadValuePredictionUnit.hh"
 #include "sim/sim_object.hh"
 
@@ -23,8 +24,9 @@ struct LvptResult {
 class LoadValuePredictionUnit : public SimObject
 {
   private:
-    /// Pointer to the corresponding GoodbyeObject. Set via Python
+    /// Pointer to the corresponding load value prediction units. Set via Python
     LoadClassificationTable* loadClassificationTable;
+    LoadValuePredictionTable* loadValuePredictionTable;
 
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
