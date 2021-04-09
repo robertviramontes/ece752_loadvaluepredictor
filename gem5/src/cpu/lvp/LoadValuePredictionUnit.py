@@ -20,7 +20,9 @@ class LoadValuePredictionTable(SimObject):
     entries = Param.Unsigned(1024, "Number of entries in the predicttion table")
     historyDepth = Param.Unsigned(1, "History depth")
 
-# class ConstantVerificationUnit(SimObject):
+class ConstantVerificationUnit(SimObject):
+    type = 'ConstantVerificationUnit'
+    cxx_header = "cpu/lvp/constant_verification_unit.hh"
  
 class LoadValuePredictionUnit(SimObject):
     type = 'LoadValuePredictionUnit'
@@ -28,3 +30,4 @@ class LoadValuePredictionUnit(SimObject):
 
     load_classification_table = Param.LoadClassificationTable("A load classification table")
     load_value_prediction_table = Param.LoadValuePredictionTable(LoadValuePredictionTable(), "A load value prediction table")
+    constant_verification_unit = Param.ConstantVerificationUnit(ConstantVerificationUnit(), "A constant verification unit")
