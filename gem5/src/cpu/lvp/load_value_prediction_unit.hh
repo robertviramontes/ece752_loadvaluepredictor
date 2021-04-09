@@ -13,8 +13,12 @@
 
 #include "cpu/lvp/load_classification_table.hh"
 #include "cpu/lvp/load_value_prediction_table.hh"
+#include "cpu/lvp/constant_verification_unit.hh"
 #include "params/LoadValuePredictionUnit.hh"
 #include "sim/sim_object.hh"
+#include "base/types.hh"
+
+#include "cpu/o3/dyn_inst.hh"
 
 struct LvptResult {
     LctResult taken;
@@ -27,6 +31,7 @@ class LoadValuePredictionUnit : public SimObject
     /// Pointer to the corresponding load value prediction units. Set via Python
     LoadClassificationTable* loadClassificationTable;
     LoadValuePredictionTable* loadValuePredictionTable;
+    ConstantVerificationUnit* constantVerificationUnit;
 
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
@@ -46,6 +51,15 @@ class LoadValuePredictionUnit : public SimObject
      * simulate() for the first time.
      */
     void startup();
+
+    std::pair<LVPType, RegVal> predictLoad(ThreadID tid, Addr pc);
+
+    Addr lookupLVPTIndex(ThreadID tid, Addr pc);
+
+    bool processLoadAddress(ThreadID tid, Addr load_address, Addr lvpt_index);
+
+    bool verifyPrediction(ThreadID tid, Addr pc, Addr load_address,
+                          RegVal correct_val, RegVal predicted_val);
 };
 
 #endif // __CPU_LVP_LOADVALUEPREDICTIONUNIT_HH__

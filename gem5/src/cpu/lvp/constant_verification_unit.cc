@@ -1,30 +1,48 @@
 #include "cpu/lvp/constant_verification_unit.hh"
 
-constant_verification_unit::constant_verification_unit() {}
+ConstantVerificationUnit::ConstantVerificationUnit(ConstantVerificationUnitParams *params) :
+    SimObject(params) 
+{}
 
-constant_verification_unit::~constant_verification_unit() {}
+ConstantVerificationUnit::~ConstantVerificationUnit() {}
 
-void constant_verification_unit::processStoreAddress(uint64_t address) {
+void ConstantVerificationUnit::processStoreAddress(Addr address, 
+													 ThreadID tid) {
 	// Only the load address needs to be compared with the store address
+	uint64_t currentStoreHits = _numStoreHits;
 	auto itr = _cvuCAM.begin();
 	while (itr != _cvuCAM.end()) {
-		std::pair<uint64_t, uint64_t> temp = *itr;
-		if (tmp.first == address) {
+		std::pair<ThreadID, std::pair<Addr, Addr>> temp = *itr;
+		if (temp.first == tid && temp.second.first == address) {
 			itr = _cvuCAM.erase(itr);
+			++_numStoreHits;
 			if (_cvuCAM.empty()) break;
 		}
 	}
+	if (currentStoreHits != _numStoreHits) {
+		++_numStoreMiss;
+	}
 }
 
-bool constant_verification_unit::processLoadAddress(uint64_t address, uint64_t lvptIndex) {
+bool ConstantVerificationUnit::processLoadAddress(Addr address, 
+													Addr lvptIndex,
+													ThreadID tid) {
 	// Both load address and LVPT index have to be searched
 	auto itr = _cvuCAM.begin();
 	while (itr != _cvuCAM.end()) {
-		std::pair<uint64_t, uint64_t> temp = *itr;
-		if (tmp.first == address && tmp.second == lvptIndex) {
+		std::pair<ThreadID, std::pair<Addr, Addr>> temp = *itr;
+		if (temp.first == tid && temp.second.first == address 
+			&& temp.second.second == lvptIndex) {
+			++_numConstantHits;
 			return true;
 		}
 	}
+	++_numConstantMiss;
 	return false;
 }
 
+ConstantVerificationUnit*
+ConstantVerificationUnitParams::create()
+{
+    return new ConstantVerificationUnit(this);
+}
