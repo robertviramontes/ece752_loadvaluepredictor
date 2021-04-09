@@ -174,6 +174,11 @@ class DerivO3CPU(BaseCPU):
     branchPred = Param.BranchPredictor(TournamentBP(numThreads =
                                                        Parent.numThreads),
                                        "Branch Predictor")
+    ##
+    ## SATVIK:
+    ## LVP object that comes from somewhere
+    ##
+    loadValPred = Param.LoadValuePredictor()
     needsTSO = Param.Bool(buildEnv['TARGET_ISA'] == 'x86',
                           "Enable TSO Memory model")
 

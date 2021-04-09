@@ -669,6 +669,20 @@ LSQUnit<Impl>::executeLoad(const DynInstPtr &inst)
         }
     }
 
+    /**
+     * SATVIK:
+     * We can call the CVU verification API here to check if the load was 
+     * judged "predictable" by the LCT and if so, whether the actual load value
+     * is equal to the predicted value. If there's a mismatch,  
+     * all its dependents will have to be issued again, with the correct values
+     * 
+     * If the load was deemed "predictable" -> reissue all dependent instructions
+     * -> Not sure how to do this
+     * 
+     * UPDATE: It's better to verify the load in the IEW stage since that will
+     * give us direct access to the IQ
+     */
+
     return load_fault;
 }
 

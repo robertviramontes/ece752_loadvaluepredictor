@@ -957,6 +957,11 @@ template <class Impl>
 void
 DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
 {
+    /**
+     * SATVIK:
+     * LVP will forward the predicted load value to this API
+     */
+
     // Obtain instructions from skid buffer if unblocking, or queue from rename
     // otherwise.
     std::queue<DynInstPtr> &insts_to_dispatch =
@@ -1087,15 +1092,148 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
             DPRINTF(IEW, "[tid:%i] Issue: Memory instruction "
                     "encountered, adding to LSQ.\n", tid);
 
-            // Reserve a spot in the load store queue for this
-            // memory access.
-            ldstQueue.insertLoad(inst);
+            /**
+             * SATVIK: 
+             * A load classified as "constant" by the LCT need not be pushed in
+             * the LDST queue? 
+             * -> In case the constant value has changed, this load will need to
+             * be issued again. A CVU lookup can be initiated here and the
+             * result of the lookup can be checked during writeback. This will
+             * give more meaningful results since the lookup will take atleast 
+             * 1 cycle. In case the constant load is invalid, the load will be
+             * reissued from writeback.
+             * 
+             * Implementation note-
+             * The PC can be sent to the LCT and LVPT for prediction during 
+             * fetch. However, it makes sense to store the predicted value and 
+             * forward it to other dependents only during dispatch. Since there
+             * is already a delay of more than 1 cycle between fetch and
+             * dispatch, it won't make a difference if the prediction and the 
+             * CVU lookup are done here itself. The CVU lookup for a constant
+             * load and the prediction itself will happen for every load 
+             * instruction in all cases so it doesn't make a difference where
+             * the two methods are called from.
+             * Inserting the load in the ldstQueue for a load that is correctly
+             * predicted as constant will waste a slot in the ldstQueue. It is
+             * thus better to verify the constant load here and only add it to 
+             * the ldstQueue if the verification fails. 
+             * 
+             * TODO: Not too sure about the wakeDependents call below-
+             */
+            std::pair<LVPType, RegVal> prediction = inst->predictLoad(tid);
 
-            ++iewDispLoadInsts;
+            if(prediction.first == LVP_CONSTANT) {
+                // Trigger a CVU lookup of the lvpt index and the load address
+                bool const_valid = inst->verifyConstLoad(tid);
+                if (!const_valid) {
+                    // This prediction failed
+                    // The CVU will have already incremented the misprediction
+                    // counter
+                    // Push this load instruction in the ldstQueue
+                    ldstQueue.insertLoad(inst);
 
-            add_to_iq = true;
+                    ++iewDispLoadInsts;
 
-            toRename->iewInfo[tid].dispatchedToLQ++;
+                    add_to_iq = true;
+
+                    toRename->iewInfo[tid].dispatchedToLQ++;
+                }
+                else {
+                    // This load was predicted correctly
+                    // A correct prediction for a constant load need not update
+                    // the LCT.
+                    // Write the predicted value to the allocated register and
+                    // forward all values 
+                    // Mark this load as executed and ready to commit.
+                    toRename->iewInfo[tid].dispatchedToLQ++;
+                    toRename->iewInfo[tid].dispatched++;
+                    insts_to_dispatch.pop();
+                    inst->setIssued();
+                    inst->setExecuted();
+                    inst->setCanCommit();
+                    add_to_iq = false;
+
+                    // Pass the load value to the destination register
+                    if(inst->numDestRegs() == 1) {
+                        if(inst->isInteger()) {
+                            inst->setIntRegOperand(inst->staticInst.get(), 
+                                                   0, prediction.second);
+                            instQueue.wakeDependents(inst);
+                            scoreboard->setReg(inst->renamedDestRegIdx(0));
+                        }
+                        else if(inst->isFloating()) {
+                            inst->setFloatRegOperand(inst->staticInst.get(), 
+                                                   0, prediction.second);
+                            instQueue.wakeDependents(inst);
+                            scoreboard->setReg(inst->renamedDestRegIdx(0));
+                        }
+                        else {
+                            // This isn't supposed to happen
+                        }
+                    }
+                    else {
+                        // This isn't supposed to happen (except maybe for
+                        // vectors)
+                    }
+                }
+            }
+            else if(prediction.first == LVP_PREDICTABLE) {
+                // Need to mark this instruction as predictable so that the CVU
+                // can verify later. -> this has been done during the 
+                // predictLoad() call. 
+
+                // These loads will follow the normal execution flow: but the 
+                // predicted value will be passed to all consumers. 
+                // The destination register will also need to be tagged with the
+                // predictable flag so that instructions which consume this
+                // register are not flushed from the IQ.
+                if(inst->numDestRegs() == 1) {
+                    // Tag the destination register for subsequent dependent 
+                    // instructions
+                    inst->tagLVPDestReg(0);
+                    if(inst->isInteger()) {
+                        inst->setIntRegOperand(inst->staticInst.get(), 
+                                               0, prediction.second);
+                        instQueue.wakeDependents(inst);
+                        scoreboard->setReg(inst->renamedDestRegIdx(0));
+                    }
+                    else if(inst->isFloating()) {
+                        inst->setFloatRegOperand(inst->staticInst.get(), 
+                                               0, prediction.second);
+                        instQueue.wakeDependents(inst);
+                        scoreboard->setReg(inst->renamedDestRegIdx(0));
+                    }
+                    else {
+                        // This isn't supposed to happen
+                    }
+                }
+                else {
+                    // This isn't supposed to happen (except maybe for
+                    // vectors)
+                }
+
+                // Reserve a spot in the load store queue for this
+                // memory access.
+                ldstQueue.insertLoad(inst);
+
+                ++iewDispLoadInsts;
+
+                add_to_iq = true;
+
+                toRename->iewInfo[tid].dispatchedToLQ++;
+            } 
+            else {
+            
+                // Reserve a spot in the load store queue for this
+                // memory access.
+                ldstQueue.insertLoad(inst);
+
+                ++iewDispLoadInsts;
+
+                add_to_iq = true;
+
+                toRename->iewInfo[tid].dispatchedToLQ++;
+            }
         } else if (inst->isStore()) {
             DPRINTF(IEW, "[tid:%i] Issue: Memory instruction "
                     "encountered, adding to LSQ.\n", tid);
@@ -1309,6 +1447,20 @@ DefaultIEW<Impl>::executeInsts()
                 if (inst->isDataPrefetch() || inst->isInstPrefetch()) {
                     inst->fault = NoFault;
                 }
+
+                /**
+                 * SATVIK:
+                 * Check the LVP prediction here
+                 */
+                if(inst->isExecuted() && fault == NoFault) {
+                    if (inst->numDestRegs() == 1) {
+                        inst->verifyPrediction(0);
+                    }
+                    else {
+                        // This shouldn't happen
+                    }
+                }
+
             } else if (inst->isStore()) {
                 fault = ldstQueue.executeStore(inst);
 
@@ -1332,6 +1484,16 @@ DefaultIEW<Impl>::executeInsts()
                     inst->setExecuted();
                     instToCommit(inst);
                     activityThisCycle();
+                }
+
+                /**
+                 * SATVIK:
+                 * At this point, if there is no error, this store instruction
+                 * will commit at some point. So invalidating any CVU CAM 
+                 * entries that have this store address should be done here.
+                 */
+                if(inst->isExecuted() && fault == NoFault) {
+                    inst->lvpStoreAddressLookup();
                 }
 
                 // Store conditionals will mark themselves as

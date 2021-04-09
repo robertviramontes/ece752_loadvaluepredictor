@@ -116,6 +116,12 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     /** Number of destination misc. registers. */
     uint8_t _numDestMiscRegs;
 
+    /**
+     * The classification of this instruction as per the LCT (only for loads)
+     */
+    LVPType _classification;
+
+    RegVal _predictedVal;
 
   public:
 #if TRACING_ON
@@ -422,6 +428,60 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     {
         this->cpu->setCCReg(this->_destRegIdx[idx], val);
         BaseDynInst<Impl>::setCCRegOperand(si, idx, val);
+    }
+
+    std::pair<LVPType, RegVal> 
+    predictLoad(ThreadID tid) {
+        std::pair<LVPType, RegVal> temp = this->cpu->lvp->predictLoad(tid, 
+                                                              this->instAddr());
+        _classification = temp.first;
+        _predictedVal = temp.second;
+        return temp;
+    }
+
+    bool
+    verifyConstLoad(ThreadID tid) {
+        Addr lvpt_index = this->cpu->lvp->lookupLVPTIndex(tid, 
+                                                          this->instAddr());
+        return this->cpu->lvp->processLoadAddress(tid, this->effAddr, 
+                                                  lvpt_index);
+    } 
+
+    void
+    tagLVPDestReg(int idx) {
+        this->cpu->tagLVPDestReg(this->_destRegIdx[idx]);
+    }
+
+    bool 
+    checkLVPTag(int idx) {
+        return this->cpu->checkLVPTag(this->_srcRegIdx[idx]);
+    }
+
+    void 
+    removeLVPTag(int idx) {
+        this->cpu->removeLVPTag(this->_destRegIdx[idx]);
+    }
+
+    bool 
+    verifyPrediction(int idx) {
+        RegVal temp;
+        if(this->isInteger()) {
+            temp = this->cpu->readIntReg(_destRegIdx[idx]);
+        }
+        else if(this->isFloating()) {
+            temp = this->cpu->readFloatReg(_destRegIdx[idx]);
+        }
+        else {
+            return true;
+        }
+        this->removeLVPTag(idx);
+        return this->cpu->lvp->verifyPrediction(this->threadNumber, 
+                        this->instAddr(), this->effAddr, temp, _predictedVal);
+    }
+
+    void 
+    lvpStoreAddressLookup() {
+        this->cpu->lvp->processStoreAddress(inst->effAddr, this->threadNumber);
     }
 };
 

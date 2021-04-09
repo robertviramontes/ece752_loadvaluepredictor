@@ -126,6 +126,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
                   params->activity),
 
       globalSeqNum(1),
+      lvp(params->loadValPred),
       system(params->system),
       lastRunningCycle(curCycle())
 {

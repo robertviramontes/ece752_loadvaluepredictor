@@ -43,6 +43,7 @@
 #define __CPU_O3_REGFILE_HH__
 
 #include <vector>
+#include <list>
 
 #include "arch/types.hh"
 #include "base/trace.hh"
@@ -131,6 +132,12 @@ class PhysRegFile
     /** Mode in which vector registers are addressed. */
     VecMode vecMode;
 
+    /**
+     * List containing physical register pointers for registers that contain a 
+     * predicted load.
+     */
+    std::list<PhysRegIdPtr> regsWithPredictedLoad;
+
   public:
     /**
      * Constructs a physical register file with the specified amount of
@@ -148,6 +155,56 @@ class PhysRegFile
      * Destructor to free resources
      */
     ~PhysRegFile() {}
+
+    /**
+     * SATVIK:
+     * Implement a map and an API here which tags a PhysRegIdPtr with a 
+     * predicted load. Every time an instruction is to issue, this map will be
+     * checked to see if any source operand of the instn uses a register that
+     * has been tagged. If there's a match, the instruction is not popped from 
+     * the IQ.
+     */
+
+    /**
+     * @brief      Checks whether the given source register contains a value 
+     *             that has been predicted for a load but not verified yet
+     *
+     * @param[in]  src_reg  The source register
+     *
+     * @return     True if the value is a predicted one
+     */
+    bool checkPredictedLoadRegister (PhysRegIdPtr src_reg) {
+        auto itr = regsWithPredictedLoad.begin();
+        while (itr != regsWithPredictedLoad.end()) {
+            if (*itr == src_reg) return true;
+            itr++;
+        }
+        return false;
+    }
+
+    /**
+     * @brief      Inserts a physical register that contains a speculated value
+     *
+     * @param[in]  reg   The register
+     */
+    void insertPredictedLoadRegister (PhysRegIdPtr reg) {
+        regsWithPredictedLoad.push_back(reg);
+    }
+
+    /**
+     * @brief      Clears a physical register pointer from the list
+     *
+     * @param[in]  reg   The register
+     */
+    void clearPredictedLoadRegister (PhysRegIdPtr reg) {
+        auto itr = regsWithPredictedLoad.begin();
+        while(itr != regsWithPredictedLoad.end()) {
+            if (*itr == reg) break;
+            itr++;
+        }
+        if (itr != regsWithPredictedLoad.end())
+            regsWithPredictedLoad.erase(itr);
+    }
 
     /** Initialize the free list */
     void initFreeList(UnifiedFreeList *freeList);

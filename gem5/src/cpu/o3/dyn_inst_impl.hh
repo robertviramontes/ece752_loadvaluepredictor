@@ -106,6 +106,8 @@ BaseO3DynInst<Impl>::initVars()
 
     _numDestMiscRegs = 0;
 
+    _classification = LVP_STRONG_UNPREDICTABLE;
+
 #if TRACING_ON
     // Value -1 indicates that particular phase
     // hasn't happened (yet).

@@ -765,6 +765,14 @@ InstructionQueue<Impl>::processFUCompletion(const DynInstPtr &inst, int fu_idx)
     instsToExecute.push_back(inst);
 }
 
+/**
+ * SATVIK:
+ * If an instruction reaches the head of the IQ, check if any of its source
+ * registers is tagged with the predicted load. If yes, do not erase the
+ * instruction from the IQ. Only after the CVU validates the load can the 
+ * instruction be removed from the IQ.
+ */
+
 // @todo: Figure out a better way to remove the squashed items from the
 // lists.  Checking the top item of each list to see if it's squashed
 // wastes time and forces jumps.
@@ -908,6 +916,11 @@ InstructionQueue<Impl>::scheduleReadyInsts()
                 // complete.
                 ++freeEntries;
                 count[tid]--;
+                /**
+                 * SATVIK:
+                 * This will be conditional- if the source registers are not
+                 * speculated values, then clear the entry from the IQ.
+                 */
                 issuing_inst->clearInIQ();
             } else {
                 memDepUnit[tid].issue(issuing_inst);

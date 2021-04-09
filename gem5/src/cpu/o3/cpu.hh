@@ -64,6 +64,8 @@
 #include "params/DerivO3CPU.hh"
 #include "sim/process.hh"
 
+#include "cpu/lvp/load_value_prediction_unit.hh"
+
 template <class>
 class Checker;
 class ThreadContext;
@@ -426,6 +428,18 @@ class FullO3CPU : public BaseO3CPU
 
     RegVal readArchFloatReg(int reg_idx, ThreadID tid);
 
+    void tagLVPDestReg(PhysRegIdPtr reg) {
+        regFile.insertPredictedLoadRegister(reg);
+    }
+
+    bool checkLVPTag(PhysRegIdPtr src_reg) {
+        return regFile.checkPredictedLoadRegister(src_reg);
+    }
+
+    void removeLVPTag(PhysRegIdPtr reg) {
+        regFile.clearPredictedLoadRegister(reg);
+    }
+
     const VecRegContainer& readArchVecReg(int reg_idx, ThreadID tid) const;
     /** Read architectural vector register for modification. */
     VecRegContainer& getWritableArchVecReg(int reg_idx, ThreadID tid);
@@ -689,6 +703,16 @@ class FullO3CPU : public BaseO3CPU
      * is not being used.
      */
     Checker<Impl> *checker;
+
+    /**
+     * SATVIK:
+     * Create an object for the LVP here?
+     * Makes sense since the LVP is a module that is shared across multiple 
+     * stages of the CPU, unlike the bpred which belongs in fetch
+     * Any LVP API can then be called using inst->cpu->LVPAPI() since the 
+     * cpu object is passed to the dyn_inst class.
+     */
+    LoadValuePredictionUnit *lvp;
 
     /** Pointer to the system. */
     System *system;
