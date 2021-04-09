@@ -51,6 +51,13 @@
 /** int64_t constant */
 #define LL(N)           ((int64_t)N##LL)
 
+#define LVP_CONSTANT             3
+#define LVP_PREDICATABLE         2
+#define LVP_WEAK_UNPREDICTABLE   1
+#define LVP_STRONG_UNPREDICTABLE 0
+
+typedef uint8_t LVPType;
+
 /** Statistics counter type.  Not much excuse for not using a 64-bit
  * integer here, but if you're desperate and only run short
  * simulations you could make this 32 bits.
