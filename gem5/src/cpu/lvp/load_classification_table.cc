@@ -62,7 +62,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
 }
 
 LctResult
-LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr, void * &bp_history)
+LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
 {
     unsigned local_predictor_idx = getLocalIndex(inst_addr);
 
