@@ -237,7 +237,7 @@ Decode::evaluate()
                 // it can be predicted and tag the instruction as such
                 if(output_inst->staticInst->isLoad())
                 {
-                    auto lvp_result = cpu.loadValuePredictor->lookup(tid, output_inst->pc.instAddr(), nullptr);
+                    auto lvp_result = cpu.loadValuePredictor->lookup(tid, output_inst->pc.instAddr());
                 }
 
                 /* Step to next sequence number */
