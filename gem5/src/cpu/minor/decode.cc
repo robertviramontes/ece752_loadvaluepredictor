@@ -233,6 +233,13 @@ Decode::evaluate()
                 dynInstAddTracing(output_inst, parent_static_inst, cpu);
 #endif
 
+                // If this is a load instruction, check the LVP unit to see if 
+                // it can be predicted and tag the instruction as such
+                if(output_inst->staticInst->isLoad())
+                {
+                    auto lvp_result = cpu.loadValuePredictor->lookup(tid, output_inst->pc.instAddr(), nullptr);
+                }
+
                 /* Step to next sequence number */
                 decode_info.execSeqNum++;
 

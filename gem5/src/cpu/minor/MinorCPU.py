@@ -47,6 +47,8 @@ from m5.objects.DummyChecker import DummyChecker
 from m5.objects.BranchPredictor import *
 from m5.objects.TimingExpr import TimingExpr
 
+from m5.objects.LoadValuePredictionUnit import LoadValuePredictionUnit
+
 from m5.objects.FuncUnit import OpClass
 
 class MinorOpClass(SimObject):
@@ -282,6 +284,8 @@ class MinorCPU(BaseCPU):
 
     branchPred = Param.BranchPredictor(TournamentBP(
         numThreads = Parent.numThreads), "Branch Predictor")
+
+    loadValuePredictor = Param.LoadValuePredictionUnit(LoadValuePredictionUnit(), "Load value predictor")
 
     def addCheckerCpu(self):
         print("Checker not yet supported by MinorCPU")

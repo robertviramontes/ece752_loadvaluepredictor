@@ -44,6 +44,8 @@
 #ifndef __CPU_MINOR_CPU_HH__
 #define __CPU_MINOR_CPU_HH__
 
+#include "cpu/lvp/load_value_prediction_unit.hh"
+
 #include "cpu/minor/activity.hh"
 #include "cpu/minor/stats.hh"
 #include "cpu/base.hh"
@@ -186,6 +188,9 @@ class MinorCPU : public BaseCPU
      *  already been idled.  The stage argument should be from the
      *  enumeration Pipeline::StageId */
     void wakeupOnEvent(unsigned int stage_id);
+
+    public:
+        LoadValuePredictionUnit* loadValuePredictor;
 };
 
 #endif /* __CPU_MINOR_CPU_HH__ */
