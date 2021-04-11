@@ -61,7 +61,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
             instShiftAmt);
 }
 
-LctResult
+LVPType
 LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
 {
     unsigned local_predictor_idx = getLocalIndex(inst_addr);
@@ -104,15 +104,16 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_co
 }
 
 inline
-LctResult
+LVPType
 LoadClassificationTable::getPrediction(uint8_t &count)
 {
     // If MSB is 0, value is unpredictable
     // If counter is saturated, value is constant
     // Otherwise, the value is predictable
-    return (count >> (localCtrBits - 1)) == 0 ? Unpredictable 
-            : count == (power(2, localCtrBits) -1) ? Constant 
-            : Predictable;
+    return (count == 0) ? LVP_STRONG_UNPREDICTABLE 
+            : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE 
+            : count == (power(2, localCtrBits) -1) ? LVP_CONSTANT 
+            : LVP_PREDICATABLE;
 }
 
 inline

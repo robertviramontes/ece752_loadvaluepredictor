@@ -8,6 +8,4 @@
 #ifndef __CPU_LVP_ENUMS_HH__
 #define __CPU_LVP_ENUMS_HH__
 
-enum LctResult {Unpredictable = 0, Predictable, Constant};
-
 #endif // __CPU_LVP_ENUMS_HH__

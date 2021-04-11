@@ -28,6 +28,6 @@ class LoadValuePredictionUnit(SimObject):
     type = 'LoadValuePredictionUnit'
     cxx_header = "cpu/lvp/load_value_prediction_unit.hh"
 
-    load_classification_table = Param.LoadClassificationTable("A load classification table")
+    load_classification_table = Param.LoadClassificationTable(LoadClassificationTable(), "A load classification table")
     load_value_prediction_table = Param.LoadValuePredictionTable(LoadValuePredictionTable(), "A load value prediction table")
     constant_verification_unit = Param.ConstantVerificationUnit(ConstantVerificationUnit(), "A constant verification unit")
