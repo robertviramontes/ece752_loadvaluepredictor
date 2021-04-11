@@ -1,44 +1,36 @@
 #!/bin/bash
 
-###################################################################################################
-## Author 	: Prajyot Gupta
-## Contact      : pgupta54@wisc.edu
-## Coursework   : ECE 752
-## Department   : Grad Student @ Dept. of Electrical & Computer Engineering
-##
-################################# DIRECTORY VARIABLES: MODIFY ACCORDINGLY ########################
-##
-## prajyotg :: to add exacxt paths per each user
-GEM5_DIR=
-SPEC_DIR=                                    # Install location of your SPEC2006 benchmarks
-##
-###################################################################################################
+############ DIRECTORY VARIABLES: MODIFY ACCORDINGLY #############
+GEM5_DIR=/nobackup/amittal/DEFAULT
+SPEC_DIR=/p/prometheus/private/adarsh1/spec2006_apps                                    # Install location of your SPEC2006 benchmarks
+##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
+##prajyotg :: if [[ "$ARGC" != 3 ]]; then # Bad number of arguments.
 if [[ "$ARGC" != 3 ]]; then # Bad number of arguments.
         echo "run_gem5_alpha_spec06_benchmark.sh  Copyright (C) 2014 Mark Gottscho"
    echo "This program comes with ABSOLUTELY NO WARRANTY; for details see <http://www.gnu.org/licenses/>."
-   echo "Referred from https://markgottscho.wordpress.com/2014/09/20/tutorial-easily-running-spec-cpu2006-benchmarks-in-the-gem5-simulator/"
+   echo "This is free software, and you are welcome to redistribute it under certain conditions; see <http://www.gnu.org/licenses/> for details."
    echo ""
         echo "Author: Prajyot Gupta"
         echo "pgupta54@wisc.edu"
         echo ""
-        echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark."
+        echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
         echo ""
-        echo "USAGE: run_gem5_spec06_benchmark.sh <BENCHMARK> <OUTPUT_DIR> <CHECKPOINT DIRECTORY>"
-        echo "EXAMPLE: ./run_gem5_alpha_spec06_benchmark.sh bzip2 /FULL/PATH/TO/output_dir /FULL/PATH/TO/CHECKPOINT"
+        echo "USAGE: run_gem5_alpha_spec06_benchmark.sh <BENCHMARK> <OUTPUT_DIR>"
+        echo "EXAMPLE: ./run_gem5_alpha_spec06_benchmark.sh bzip2 /FULL/PATH/TO/output_dir"
         echo ""
         echo "A single --help help or -h argument will bring this message back."
         exit
 fi
 
 # Get command line input. We will need to check these.
-BENCHMARK=$1                                    # Benchmark name, e.g. bzip2
-OUTPUT_DIR=$2                                   # Directory to place run output. Make sure this exists!
-CHECKPOINT_DIR=$3				# Gets details of the checkpoint for SPEC Benchmarks
-
+BENCHMARK=$1                                    			# Benchmark name, e.g. bzip2
+#OUTPUT_DIR=$2                                   			# Directory to place run output. Make sure this exists!
+OUTPUT_DIR=/u/v/b/vbaoni/prajyotg/golden_benchmarks/"$BENCHMARK"  	# Directory to place run output. Make sure this exists!
+CHECKPOINT_DIR=$3
 ######################### BENCHMARK CODENAMES ####################
-##prajyotg ::  Discuss with Vanshika/Adarsh and reduce this subset
+
 
 PERLBENCH_CODE=400.perlbench
 BZIP2_CODE=401.bzip2
@@ -72,9 +64,8 @@ XALANCBMK_CODE=483.xalancbmk
 SPECRAND_INT_CODE=998.specrand
 SPECRAND_FLOAT_CODE=999.specrand
 ##################################################################
-##
-## Check BENCHMARK input
-##
+
+# Check BENCHMARK input
 #################### BENCHMARK CODE MAPPING ######################
 BENCHMARK_CODE="none"
 
@@ -159,7 +150,7 @@ fi
 if [[ "$BENCHMARK" == "wrf" ]]; then
         BENCHMARK_CODE=$WRF_CODE
 fi
-if [[ "$BENCHMARK" == "sphinx3" ]]; then
+if [[ "$BENCHMARK" == "sphinx_livepretend" ]]; then
         BENCHMARK_CODE=$SPHINX3_CODE
 fi
 if [[ "$BENCHMARK" == "xalancbmk" ]]; then # DOES NOT WORK
@@ -213,8 +204,14 @@ echo "--------- Here goes nothing! Starting gem5! ------------" | tee -a $SCRIPT
 echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
-########## Below is the main Gem5 Command 
+# Actually launch gem5!
+#//'''
+#//BINARY="gem5.fast-original"
+#//CHCKPT_INST_MAX=4000000000
+#//
+#//CHCKPT_CREATE=" --take-checkpoints="+str(CHCKPT_INST_MAX)+" --at-instruction "
+#//
+#//FULL_SCRIPT=GEM5_PATH+"/build/"+PROTOCOL+"/"+BINARY+" --remote-gdb-port=0 "+GEM5_PATH+"/configs/example/fs.py --cpu-type=atomic --kernel="+GEM5_PATH+"/dist/m5/system/binaries/"+KERNEL+" --mem-size="+MEM_SIZE+" --mem-type=SimpleMemory --cacheline_size=64 --l1i_assoc=8 --l1d_assoc=8 --num-cpus="+str(NUM_CORES)+" --l1i_size="+L1_SIZE+" --l1d_size="+L1_SIZE+" --l2_assoc=16 --l2_size=" + L2_SIZE + CHCKPT_CREATE + RUN_SCRIPT 
+#//'''
 
-$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR $GEM5_DIR/configs/example/se.py --restore-with-cpu=AtomicSimpleCPU -c../spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn  --checkpoint-dir=../checkpoints/checkpoint_$CHECKPOINT_DIR --caches --l2cache --cpu-type=DerivO3CPU  -I 10000000  --mem-size=16GB --checkpoint-restore=1
-
-######### The End! 
+$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR  $GEM5_DIR/configs/example/se.py --restore-with-cpu=AtomicSimpleCPU -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn  --checkpoint-dir=/p/prometheus/private/adarsh1/checkpoints/checkpoint_$CHECKPOINT_DIR --caches --l2cache --cpu-type=DerivO3CPU  -I 10000000  --mem-size=16GB --checkpoint-restore=1 --mem-type=DDR3_2133_8x8  --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz
