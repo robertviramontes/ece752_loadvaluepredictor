@@ -18,10 +18,10 @@
 #include "sim/sim_object.hh"
 #include "base/types.hh"
 
-#include "cpu/o3/dyn_inst.hh"
+#include "cpu/base_dyn_inst.hh"
 
 struct LvptResult {
-    LctResult taken;
+    LVPType taken;
     uint64_t value;
 };
 
