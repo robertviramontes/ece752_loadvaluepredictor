@@ -238,6 +238,8 @@ Decode::evaluate()
                 if(output_inst->staticInst->isLoad())
                 {
                     auto lvp_result = cpu.loadValuePredictor->lookup(tid, output_inst->pc.instAddr());
+                    output_inst->loadPredicted = lvp_result.taken;
+                    output_inst->loadPredictedValue = lvp_result.value;
                 }
 
                 /* Step to next sequence number */

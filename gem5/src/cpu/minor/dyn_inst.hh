@@ -184,6 +184,13 @@ class MinorDynInst : public RefCounted
     /** Predicted branch target */
     TheISA::PCState predictedTarget;
 
+    /** Robert
+     * Track if the load instruction was predicted and, if so, what the predicted value is.
+     * Load prediction done in decode, acted upon by execute in scheduling and load value comparison. */
+    LVPType loadPredicted;
+
+    uint64_t loadPredictedValue;
+
     /** Fields only set during execution */
 
     /** FU this instruction is issued to */
