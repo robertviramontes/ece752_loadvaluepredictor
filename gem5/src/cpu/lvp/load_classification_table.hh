@@ -41,7 +41,7 @@ class LoadClassificationTable : public SimObject
      * @param bp_history Pointer to any bp history state.
      * @return Whether or not the branch is taken.
      */
-    LctResult lookup(ThreadID tid, Addr inst_addr, void * &bp_history);
+    LVPType lookup(ThreadID tid, Addr inst_addr);
 
     /**
      * Updates the branch predictor with the actual result of a branch.
@@ -61,7 +61,7 @@ class LoadClassificationTable : public SimObject
      *  @param count The value of the counter.
      *  @return The prediction based on the counter value.
      */
-    inline LctResult getPrediction(uint8_t &count);
+    inline LVPType getPrediction(uint8_t &count);
 
     /** Calculates the local index based on the PC. */
     inline unsigned getLocalIndex(Addr &PC);

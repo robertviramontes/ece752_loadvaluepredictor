@@ -18,10 +18,10 @@
 #include "sim/sim_object.hh"
 #include "base/types.hh"
 
-#include "cpu/o3/dyn_inst.hh"
+#include "cpu/base_dyn_inst.hh"
 
 struct LvptResult {
-    LctResult taken;
+    LVPType taken;
     uint64_t value;
 };
 
@@ -43,7 +43,7 @@ class LoadValuePredictionUnit : public SimObject
      * @param bp_history Pointer to any bp history state.
      * @return Whether or not the branch is taken.
      */
-    LvptResult lookup(ThreadID tid, Addr inst_addr, void * &bp_history);
+    LvptResult lookup(ThreadID tid, Addr inst_addr);
 
     /**
      * Part of a SimObject's initilaization. Startup is called after all

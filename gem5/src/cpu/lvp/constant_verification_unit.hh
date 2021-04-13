@@ -27,6 +27,7 @@
 
 #include "sim/sim_object.hh"
 #include "base/types.hh"
+#include "params/ConstantVerificationUnit.hh"
 
 #include <vector>
 #include <map>
@@ -45,7 +46,7 @@
 
 class ConstantVerificationUnit : public SimObject {
 public: 
-	ConstantVerificationUnit();
+	ConstantVerificationUnit(ConstantVerificationUnitParams *p);
 
 	~ConstantVerificationUnit();
 
@@ -57,7 +58,7 @@ public:
 	 *
 	 * @param[in]  address  The store address
 	 */	
-	void processStoreAddress(Addr address);
+	void processStoreAddress(Addr address, ThreadID tid);
 
 	/**
 	 * @brief      Check if a load address classified as constant is present in
@@ -69,7 +70,7 @@ public:
 	 * @return     True if the load address, LVPT index pair exist in the CAM
 	 * 			   False otherwise
 	 */	
-	bool processLoadAddress(Addr address, Addr lvptIndex);
+	bool processLoadAddress(Addr address, Addr lvptIndex, ThreadID tid);
 
 	void updateLCT();
 
