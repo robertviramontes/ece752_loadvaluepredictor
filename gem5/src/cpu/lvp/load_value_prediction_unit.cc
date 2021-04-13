@@ -36,6 +36,18 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     return result;
 }
 
+bool 
+LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_address,
+                RegVal correct_val, RegVal predicted_val) {
+    if (correct_val == predicted_val)
+    {
+        loadClassificationTable->update(tid, pc, true, false, nullptr, pc);
+        return true;
+    } else{
+        return false;
+    }
+}
+
 void
 LoadValuePredictionUnit::startup()
 {
