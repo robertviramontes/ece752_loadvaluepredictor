@@ -374,6 +374,47 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                 static_cast<unsigned int>(packet->getConstPtr<uint8_t>()[0]));
         }
 
+        /** Robert 
+         * Check if the value loaded from memory was correct and update the 
+         * LVP prediction tables with the result. */
+        if (is_load)
+        {
+            bool load_predicted_correctly = false;
+            if (inst->loadPredicted != LVP_CONSTANT)
+            {
+                // Get the data from the packet (borrowed from memhelpers.hh)
+                uint64_t mem;
+
+                switch (packet->getSize()) {
+                    case 1:
+                        mem = packet->getConstPtr<uint8_t>()[0];
+                        break;
+                    case 2:
+                        mem = packet->getConstPtr<uint16_t>()[0];
+                        break;
+                    case 4:
+                        mem = packet->getConstPtr<uint32_t>()[0];
+                        break;
+                    case 8:
+                        mem = packet->getConstPtr<uint64_t>()[0];
+                        break;
+                    default:
+                        panic("Unhandled size in handleMemResponse.\n");
+                }
+                load_predicted_correctly = 
+                    cpu.loadValuePredictor->verifyPrediction(
+                        thread_id, inst->pc.instAddr(), 
+                        inst->pc.instAddr(), 
+                        mem, 
+                        inst->loadPredictedValue);
+            }
+
+            if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
+            {
+                // TODO the instruction was incorrectly predicted, we need to rewind this instruction
+            }
+        }
+
         /* Complete the memory access instruction */
         fault = inst->staticInst->completeAcc(packet, &context,
             inst->traceData);
@@ -511,6 +552,8 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         thread->pcState(old_pc);
         issued = true;
     }
+
+    /** ROBERT TODO CVU lookup here */
 
     return issued;
 }
