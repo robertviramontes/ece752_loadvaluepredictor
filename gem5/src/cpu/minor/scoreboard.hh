@@ -47,6 +47,7 @@
 #include "cpu/minor/cpu.hh"
 #include "cpu/minor/dyn_inst.hh"
 #include "cpu/minor/trace.hh"
+#include <unordered_map>
 
 namespace Minor
 {
@@ -135,6 +136,9 @@ class Scoreboard : public Named
 
     /** MinorTraceIF interface */
     void minorTrace() const;
+
+  private:
+    std::unordered_map<Index, uint64_t> loadPredictedRegisters;
 };
 
 }

@@ -137,6 +137,20 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 fuIndices[index] = inst->fuIndex;
             }
 
+            if (inst->staticInst->isLoad())
+            {
+                /** ROBERT
+                 * If we're about to release a load instruction for execution, and it's
+                 * predictable or constant, we need to forward the value to subsequent instructions
+                 * and also remember it so that we can reverse it
+                 */
+                if (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE) 
+                {
+                    // Use the scoreboard index to store the loaded value
+                    loadPredictedRegisters[index] = inst->loadPredictedValue;
+                } 
+            }
+
             DPRINTF(MinorScoreboard, "Marking up inst: %s"
                 " regIndex: %d final numResults: %d returnCycle: %d\n",
                 *inst, index, numResults[index], returnCycle[index]);
@@ -203,6 +217,19 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
                 returnCycle[index] = Cycles(0);
                 writingInst[index] = 0;
                 fuIndices[index] = -1;
+            }
+
+            if (inst->staticInst->isLoad())
+            {
+                /** ROBERT
+                 * We're clearing an instruction from the scoreboard, indicating that it has comitted
+                 * and that we can clear it's entry from the map of load predicted registers.
+                 */
+                if (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE) 
+                {
+                    // Remove the entry associated with the scoreboard reg index
+                    loadPredictedRegisters.erase(index);
+                } 
             }
 
             DPRINTF(MinorScoreboard, "Clearing inst: %s"
