@@ -403,7 +403,8 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                 }
                 load_predicted_correctly = 
                     cpu.loadValuePredictor->verifyPrediction(
-                        thread_id, inst->pc.instAddr(), 
+                        thread_id,
+                        inst->pc.instAddr(), 
                         inst->pc.instAddr(), 
                         mem, 
                         inst->loadPredictedValue);
@@ -412,6 +413,7 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
             if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
             {
                 // TODO the instruction was incorrectly predicted, we need to rewind this instruction
+                // and any dependent instructions that used this value
             }
         }
 
@@ -428,7 +430,13 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
             /* Stores need to be pushed into the store buffer to finish
              *  them off */
             if (response->needsToBeSentToStoreBuffer())
+            {
                 lsq.sendStoreToStoreBuffer(response);
+
+                /** ROBERT Stores that are sent to the store buffer should
+                 *  also be sent to the CVU to update any constant values. */
+                // cpu.loadValuePredictor->processStoreAddress(thread_id, inst->staticInst->, inst->pc.instAddr());
+            } 
         }
     } else {
         fatal("There should only ever be reads, "
