@@ -6,8 +6,8 @@ ConstantVerificationUnit::ConstantVerificationUnit(ConstantVerificationUnitParam
 
 ConstantVerificationUnit::~ConstantVerificationUnit() {}
 
-void ConstantVerificationUnit::processStoreAddress(Addr address, 
-													 ThreadID tid) {
+void ConstantVerificationUnit::processStoreAddress(ThreadID tid, 
+													 Addr address) {
 	// Only the load address needs to be compared with the store address
 	uint64_t currentStoreHits = _numStoreHits;
 	auto itr = _cvuCAM.begin();
