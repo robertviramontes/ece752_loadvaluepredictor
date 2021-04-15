@@ -51,6 +51,7 @@
 #include "debug/ExecFaulting.hh"
 #include "debug/MinorExecute.hh"
 #include "debug/MinorInterrupt.hh"
+#include "debug/MinorLoadPredictor.hh"
 #include "debug/MinorMem.hh"
 #include "debug/MinorTrace.hh"
 #include "debug/PCEvent.hh"
@@ -408,13 +409,21 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                         inst->pc.instAddr(), 
                         mem, 
                         inst->loadPredictedValue);
+
+                if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
+                {
+                    // TODO the instruction was incorrectly predicted, we need to rewind this instruction
+                    // and any dependent instructions that used this value
+                    DPRINTF(MinorLoadPredictor, "Predicted the wrong value, need to fix up!\n");
+                    auto reg_id = thread->flattenRegId(inst->staticInst->destRegIdx(0));
+                    thread->setIntRegFlat(reg_id.flatIndex(), mem);
+                    BranchData &lvpResetTarget = *out.inputWire;
+
+                    updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
+                }
             }
 
-            if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
-            {
-                // TODO the instruction was incorrectly predicted, we need to rewind this instruction
-                // and any dependent instructions that used this value
-            }
+
         }
 
         /* Complete the memory access instruction */
