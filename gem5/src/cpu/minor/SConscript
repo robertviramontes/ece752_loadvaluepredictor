@@ -60,6 +60,7 @@ if 'MinorCPU' in env['CPU_MODELS']:
     DebugFlag('MinorCPU', 'Minor CPU-level events')
     DebugFlag('MinorExecute', 'Minor Execute stage')
     DebugFlag('MinorInterrupt', 'Minor interrupt handling')
+    DebugFlag('MinorLoadPredictor', 'LVP in minor CPU')
     DebugFlag('MinorMem', 'Minor memory accesses')
     DebugFlag('MinorScoreboard', 'Minor Execute register scoreboard')
     DebugFlag('MinorTrace', 'MinorTrace cycle-by-cycle state trace')
