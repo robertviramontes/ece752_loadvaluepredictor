@@ -39,6 +39,7 @@
 
 #include "arch/registers.hh"
 #include "cpu/reg_class.hh"
+#include "debug/MinorLoadPredictor.hh"
 #include "debug/MinorScoreboard.hh"
 #include "debug/MinorTiming.hh"
 
@@ -144,10 +145,31 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                  * predictable or constant, we need to forward the value to subsequent instructions
                  * and also remember it so that we can reverse it
                  */
-                if (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE) 
+                
+                // Let's really just focus on int and float registers for now, vec registers might be a pain
+                auto is_int = reg.classValue() == IntRegClass;
+                auto is_float = reg.classValue() == FloatRegClass;
+                if ((is_int || is_float) 
+                    && (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE)) 
                 {
+                    DPRINTF(MinorLoadPredictor, "Forwarding value for instruction %s with %d dest registers.\n", *inst, num_dests);
+                    DPRINTF(MinorLoadPredictor, "Going to write %ld to register %d.\n", inst->loadPredictedValue, reg.flatIndex());
+                    
                     // Use the scoreboard index to store the loaded value
                     loadPredictedRegisters[index] = inst->loadPredictedValue;
+                    
+                    if (is_int)
+                    {
+                        thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
+                    } 
+                    else if (is_float)
+                    {
+                        thread_context->setFloatRegFlat(reg.flatIndex(), inst->loadPredictedValue);
+                    }
+
+                    // Indicate that, even though this instruction is in-flight, the result is already
+                    // available in the registers.
+                    numResults[index]--; 
                 } 
             }
 
@@ -185,7 +207,7 @@ Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
         }
     }
 
-    DPRINTF(MinorScoreboard, "Inst: %s depends on execSeqNum: %d\n",
+    DPRINTF(MinorScoreboard, "Inst: %s depends on fexecSeqNum: %d\n",
         *inst, ret);
 
     return ret;
