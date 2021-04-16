@@ -150,8 +150,12 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 auto is_int = reg.classValue() == IntRegClass;
                 auto is_float = reg.classValue() == FloatRegClass;
                 if ((is_int || is_float) 
-                    && (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE)) 
+                        && inst->loadPredicted == LVP_CONSTANT)
+                // For now, let's just consider constants since that doesn't require squashing the pipeline
+                //    && (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE)) 
                 {
+                    // TODO need to check the CVU that the value is still fine
+
                     DPRINTF(MinorLoadPredictor, "Forwarding value for instruction %s with %d dest registers.\n", *inst, num_dests);
                     DPRINTF(MinorLoadPredictor, "Going to write %ld to register %d.\n", inst->loadPredictedValue, reg.flatIndex());
                     
@@ -247,7 +251,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
                  * We're clearing an instruction from the scoreboard, indicating that it has comitted
                  * and that we can clear it's entry from the map of load predicted registers.
                  */
-                if (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE) 
+                if (inst->loadPredicted == LVP_CONSTANT) // || inst->loadPredicted == LVP_PREDICATABLE) 
                 {
                     // Remove the entry associated with the scoreboard reg index
                     loadPredictedRegisters.erase(index);
