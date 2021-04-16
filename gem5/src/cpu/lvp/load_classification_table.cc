@@ -92,8 +92,6 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_co
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
 
-    DPRINTF(LCT, "Looking up index %#x\n", local_predictor_idx);
-
     if (prediction_correct) {
         DPRINTF(LCT, "Load classification updated as correct.\n");
         localCtrs[local_predictor_idx]++;

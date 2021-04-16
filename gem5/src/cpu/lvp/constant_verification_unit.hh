@@ -58,7 +58,7 @@ public:
 	 *
 	 * @param[in]  address  The store address
 	 */	
-	void processStoreAddress(Addr address, ThreadID tid);
+	void processStoreAddress(ThreadID tid, Addr address);
 
 	/**
 	 * @brief      Check if a load address classified as constant is present in
