@@ -36,7 +36,7 @@ class LoadValuePredictionUnit : public SimObject
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
 
-    /*
+    /**
      * Looks up the given instruction address and returns
      * a LvptResult with the LctResult and predicted value.
      * @param inst_addr The address of the instruction to look up.
@@ -57,6 +57,15 @@ class LoadValuePredictionUnit : public SimObject
     Addr lookupLVPTIndex(ThreadID tid, Addr pc);
 
     bool processLoadAddress(ThreadID tid, Addr load_address, Addr lvpt_index);
+
+    /** 
+     * @brief Used to process a store to the store_address and update the CVU
+     * so it can verify constants in the pipeline
+     * 
+     * @param tid The thread id
+     * @param store_address data address of the value to be stored
+     */
+    bool processStoreAddress(ThreadID tid, Addr store_address);
 
     bool verifyPrediction(ThreadID tid, Addr pc, Addr load_address,
                           RegVal correct_val, RegVal predicted_val);
