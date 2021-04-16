@@ -410,18 +410,28 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                         mem, 
                         inst->loadPredictedValue);
 
-                if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
-                {
-                    // TODO the instruction was incorrectly predicted, we need to rewind this instruction
-                    // and any dependent instructions that used this value
-                    DPRINTF(MinorLoadPredictor, "Predicted the wrong value, need to fix up!\n");
-                    auto reg_id = thread->flattenRegId(inst->staticInst->destRegIdx(0));
-                    thread->setIntRegFlat(reg_id.flatIndex(), mem);
-                    BranchData &lvpResetTarget = *out.inputWire;
+                
+                // if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
+                // {
+                //     // TODO the instruction was incorrectly predicted, we need to rewind this instruction
+                //     // and any dependent instructions that used this value
+                //     DPRINTF(MinorLoadPredictor, "Predicted the wrong value, need to fix up!\n");
+                //     auto reg_id = thread->flattenRegId(inst->staticInst->destRegIdx(0));
+                //     thread->setIntRegFlat(reg_id.flatIndex(), mem);
+                //     BranchData &lvpResetTarget = *out.inputWire;
 
-                    updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
-                }
+                //     updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
+                // }
             }
+        }
+
+        /** ROBERT
+        * Now that the data address has been calculated, we should be 
+        * let the load value predictor know that we're going to store
+        * so that it can update the CVU and affect subsequent loads. */
+        if (inst->staticInst->isStore() && packet->hasRespData())
+        {
+            cpu.loadValuePredictor->processStoreAddress(thread->threadId(), response->packet->getAddr());
         }
 
         /* Complete the memory access instruction */
@@ -439,10 +449,6 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
             if (response->needsToBeSentToStoreBuffer())
             {
                 lsq.sendStoreToStoreBuffer(response);
-
-                /** ROBERT Stores that are sent to the store buffer should
-                 *  also be sent to the CVU to update any constant values. */
-                // cpu.loadValuePredictor->processStoreAddress(thread_id, inst->staticInst->, inst->pc.instAddr());
             } 
         }
     } else {
@@ -519,6 +525,14 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
 
         DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
 
+        if (inst->staticInst->isLoad())
+        {
+            if (inst->loadPredicted == LVP_CONSTANT)
+            {
+                cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->staticInst->, inst->pc.pc());
+            }
+        }
+
         Fault init_fault = inst->staticInst->initiateAcc(&context,
             inst->traceData);
 
@@ -567,8 +581,6 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         thread->pcState(old_pc);
         issued = true;
     }
-
-    /** ROBERT TODO CVU lookup here */
 
     return issued;
 }
@@ -795,6 +807,8 @@ Execute::issue(ThreadID thread_id)
 
                                 inst->canEarlyIssue = true;
                             }
+
+
                             /* Also queue this instruction in the memory ref
                              *  queue to ensure in-order issue to the LSQ */
                             DPRINTF(MinorExecute, "Pushing mem inst: %s\n",

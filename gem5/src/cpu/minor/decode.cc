@@ -242,15 +242,6 @@ Decode::evaluate()
                     output_inst->loadPredictedValue = lvp_result.value;
                 }
 
-                /** ROBERT
-                 * If we are about to issue a store, let the load value predictor know
-                 * so that it can update the CVU and affect subsequent loads. */
-                if (output_inst->staticInst->isStore())
-                {
-                    cpu.loadValuePredictor->processStore();
-                }
-
-
                 /* Step to next sequence number */
                 decode_info.execSeqNum++;
 
