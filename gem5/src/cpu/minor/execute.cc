@@ -422,8 +422,6 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                     updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
                 }
             }
-
-
         }
 
         /* Complete the memory access instruction */
