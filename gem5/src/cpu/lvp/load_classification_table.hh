@@ -47,9 +47,9 @@ class LoadClassificationTable : public SimObject
      * Updates the branch predictor with the actual result of a branch.
      * @param inst_addr The address of the instruction to update.
      * @param taken Whether or not the branch was taken.
+     * @return Updated LVPType of the location
      */
-    void update(ThreadID tid, Addr inst_addr, bool prediction_correct,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget);
+    LVPType update(ThreadID tid, Addr inst_addr, bool prediction_correct);
 
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }

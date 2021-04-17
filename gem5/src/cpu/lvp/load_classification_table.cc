@@ -77,17 +77,16 @@ LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
     return getPrediction(counter_val);
 }
 
-void
-LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_correct,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget)
+LVPType
+LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_correct)
 {
     unsigned local_predictor_idx;
 
     // No state to restore, and we do not update on the wrong
     // path.
-    if (squashed) {
-        return;
-    }
+    // if (squashed) {
+    //     return;
+    // }
 
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
@@ -99,6 +98,8 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_co
         DPRINTF(LCT, "Load classification updated as incorrect.\n");
         localCtrs[local_predictor_idx]--;
     }
+
+    return getPrediction(localCtrs[local_predictor_idx]);
 }
 
 inline
