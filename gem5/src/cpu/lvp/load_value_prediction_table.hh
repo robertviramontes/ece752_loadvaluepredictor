@@ -59,6 +59,7 @@ class LoadValuePredictionTable : public simObject
                unsigned instShiftAmt, unsigned numThreads);
 // TODO :: Discuss with Robert
     LoadValuePredictionTable(const LoadValuePredictionTableParams *params);
+    
     void reset();
 
     /** Looks up an address in the LVPT. Must call valid() first on the address.
@@ -83,19 +84,15 @@ class LoadValuePredictionTable : public simObject
      * prajyotg :: TODO
      *  @param tid The thread id.
      */
+    
     //prajyotg void update(Addr instPC, const TheISA::PCState &targetPC,
-    void update(Addr instPC, const unsigned &target,
-                ThreadID tid);
+    void update(Addr instPC, const unsigned target, ThreadID tid);
 
-// ROBert: void update(ThreadID tid, Addr inst_addr, bool prediction_correct, bool squashed, const StaticInstPtr & inst, Addr corrTarget);
-
-//prajyotg :: TODO :: not sure if it'll be used
-// Keeping it for now
-  private:
     /** Returns the index into the LVPT, based on the branch's PC.
      *  @param inst_PC The branch to look up.
      *  @return Returns the index into the LVPT.
      */
+    
     inline unsigned getIndex(Addr instPC, ThreadID tid);
 
     /** Returns the tag bits of a given address.
@@ -103,6 +100,8 @@ class LoadValuePredictionTable : public simObject
      *  @return Returns the tag bits.
      */
     inline Addr getTag(Addr instPC);
+
+  private:
 
     /** The actual LVPT declaration */
     std::vector<LVPTEntry> LVPT;
@@ -113,7 +112,7 @@ class LoadValuePredictionTable : public simObject
     /** Depth of data history kept in the LVPT*/
     const unsigned historyDepth;
 
-//prajyotg :: No sure if below will be used
+    //prajyotg :: No sure if below will be used
     /** The index mask. */
     unsigned idxMask;
 
