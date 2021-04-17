@@ -5,12 +5,18 @@
 // Project      : ECE 752
 /****************************************************************************/
 
-#ifndef __CPU_PRED_LVPT_HH__
-#define __CPU_PRED_LVPT_HH__
+#ifndef __CPU_LVP_LOADVALUEPREDICTIONTABLE_HH__
+#define __CPU_LVP_LOADVALUEPREDICTIONTABLE_HH__
+
+#include "base/types.hh"
+#include "cpu/static_inst.hh"
+#include "sim/sim_object.hh"
+
+#include "enums.hh"
+#include "params/LoadValuePredictionTable.hh"
 
 #include "arch/types.hh"
 #include "base/logging.hh"
-#include "base/types.hh"
 #include "config/the_isa.hh"
 
 /** Creating a default Load Value Prediction Table entry
@@ -20,7 +26,7 @@
  *  valid : Specifies if the value loaded is valid
  */
 
-class LoadValuePredictionTable : public simObject
+class LoadValuePredictionTable : public SimObject
 {
   private:
     struct LVPTEntry
@@ -55,9 +61,9 @@ class LoadValuePredictionTable : public simObject
      *  @param tagBits Number of bits for each tag in the LVPT.
      *  @param instShiftAmt Offset amount for instructions to ignore alignment.
      */
-    LoadValuePredictionTable(unsigned numEntries, unsigned tagBits,
-               unsigned instShiftAmt, unsigned numThreads);
 // TODO :: Discuss with Robert
+    //prajyotg :: going by Roberts implementation :: LoadValuePredictionTable(unsigned numEntries, unsigned tagBits,
+    //prajyotg :: going by Roberts implementation ::              unsigned instShiftAmt, unsigned numThreads);
     LoadValuePredictionTable(const LoadValuePredictionTableParams *params);
     
     void reset();
@@ -132,4 +138,4 @@ class LoadValuePredictionTable : public simObject
     unsigned log2NumThreads;
 };
 
-#endif // __CPU_PRED_LVPT_HH__
+#endif // __CPU_LVP_LOADVALUEPREDICTIONTABLE_HH__

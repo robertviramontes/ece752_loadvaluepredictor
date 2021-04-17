@@ -5,22 +5,29 @@
 // Project      : ECE 752
 /****************************************************************************/
 
-#include "cpu/lvp/lvpt.hh"
+#include "cpu/lvp/load_value_prediction_table.hh"
 
 #include "base/intmath.hh"
 #include "base/trace.hh"
 #include "debug/LVPT.hh"
 
-LoadValuePredictionTable::LoadValuePredictionTable(unsigned _numEntries,
-                         unsigned _tagBits,
-                         unsigned _instShiftAmt,
-                         unsigned _num_threads)
-    : numEntries(_numEntries),
-      tagBits(_tagBits),
-      instShiftAmt(_instShiftAmt),
-      log2NumThreads(floorLog2(_num_threads))
+LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTableParams *params)
+    : SimObject(params),
+      numEntries(params->entries),
+      historyDepth(params->historyDepth),
+      idxMask(numEntries - 1),
+      instShiftAmt(0) 
+
+//prajyotg :: Robert's implementation :: LoadValuePredictionTable::LoadValuePredictionTable(unsigned _numEntries,
+//prajyotg :: Robert's implementation ::                          unsigned _tagBits,
+//prajyotg :: Robert's implementation ::                          unsigned _instShiftAmt,
+//prajyotg :: Robert's implementation ::                          unsigned _num_threads)
+//prajyotg :: Robert's implementation ::     : numEntries(_numEntries),
+//prajyotg :: Robert's implementation ::       tagBits(_tagBits),
+//prajyotg :: Robert's implementation ::       instShiftAmt(_instShiftAmt),
+//prajyotg :: Robert's implementation ::       log2NumThreads(floorLog2(_num_threads))
 {
-    DPRINTF(Fetch, "LVPT: Creating LVPT object.\n");
+    DPRINTF(LVPT, "LVPT: Creating LVPT object.\n");
 
     if (!isPowerOf2(numEntries)) {
         fatal("LVPT entries is not a power of 2!");
@@ -28,6 +35,7 @@ LoadValuePredictionTable::LoadValuePredictionTable(unsigned _numEntries,
 
     LVPT.resize(numEntries);
 
+    DPRINTF(LVPT, "LVPT: Doing an initial reset \n");
     for (unsigned i = 0; i < numEntries; ++i) {
         LVPT[i].valid = false;
     }
@@ -42,6 +50,7 @@ LoadValuePredictionTable::LoadValuePredictionTable(unsigned _numEntries,
 void
 LoadValuePredictionTable::reset()
 {
+    DPRINTF(LVPT, "LVPT : Calling the Reset API \n");
     for (unsigned i = 0; i < numEntries; ++i) {
         LVPT[i].valid = false;
     }
@@ -54,6 +63,7 @@ LoadValuePredictionTable::getIndex(Addr instPC, ThreadID tid)
 {
     // Need to shift PC over by the word offset.
     // Math: ((instPC >> instShiftAmt)^(tid<<(tagShiftAmt-instShiftAmt-log2NumThreads)))&idxMask;
+    DPRINTF(LVPT, "LVPT : Getting Index \n");
     return ((instPC >> instShiftAmt)
             ^ (tid << (tagShiftAmt - instShiftAmt - log2NumThreads)))
             & idxMask;
@@ -63,6 +73,7 @@ inline
 Addr
 LoadValuePredictionTable::getTag(Addr instPC)
 {
+    DPRINTF(LVPT, "LVPT : Getting Tag \n");
     return (instPC >> tagShiftAmt) & tagMask;
 }
 
@@ -70,6 +81,7 @@ LoadValuePredictionTable::getTag(Addr instPC)
 bool
 LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 {
+    DPRINTF(LVPT, "LVPT : Checking if LVPT entry is valid \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
 
     Addr inst_tag = getTag(instPC);
@@ -95,6 +107,7 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 unsigned 
 LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
 {
+    DPRINTF(LVPT, "LVPT : Looking up the entry in PC :: prajyotg  \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
 
     Addr inst_tag = getTag(instPC);
@@ -114,6 +127,7 @@ void
 //prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
 LoadValuePredictionTable::update(Addr instPC, const unsigned target, ThreadID tid)
 {
+    DPRINTF(LVPT, "LVPT : Updating the value in the LVPT \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
 
     assert(LVPT_idx < numEntries);
