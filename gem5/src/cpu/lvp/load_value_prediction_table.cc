@@ -112,7 +112,7 @@ LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
 
 void
 //prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
-LoadValuePredictionTable::update(Addr instPC, const unsigned &target, ThreadID tid)
+LoadValuePredictionTable::update(Addr instPC, const unsigned target, ThreadID tid)
 {
     unsigned LVPT_idx = getIndex(instPC, tid);
 
