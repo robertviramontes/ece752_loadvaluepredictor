@@ -40,7 +40,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
       localPredictorSets(localPredictorSize / localCtrBits),
       localCtrs(localPredictorSets, SatCounter(localCtrBits, 0)),
       indexMask(localPredictorSets - 1),
-      invalidateConstToZero(false),
+      invalidateConstToZero(params->invalidateConstToZero),
       instShiftAmt(0) // TODO what is correct???
 {
     if (!isPowerOf2(localPredictorSize)) {

@@ -12,6 +12,7 @@ class LoadClassificationTable(SimObject):
 
     localPredictorSize = Param.Unsigned(512, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
+    invalidateConstToZero = Param.Bool(False, "Reset counter to 0 on constant invalidation")
 
 class LoadValuePredictionTable(SimObject):
     type = 'LoadValuePredictionTable'
