@@ -40,6 +40,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
       localPredictorSets(localPredictorSize / localCtrBits),
       localCtrs(localPredictorSets, SatCounter(localCtrBits, 0)),
       indexMask(localPredictorSets - 1),
+      invalidateConstToZero(params->invalidateConstToZero),
       instShiftAmt(0) // TODO what is correct???
 {
     if (!isPowerOf2(localPredictorSize)) {
@@ -77,17 +78,16 @@ LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
     return getPrediction(counter_val);
 }
 
-void
-LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_correct,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget)
+LVPType
+LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct)
 {
     unsigned local_predictor_idx;
 
     // No state to restore, and we do not update on the wrong
     // path.
-    if (squashed) {
-        return;
-    }
+    // if (squashed) {
+    //     return;
+    // }
 
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
@@ -97,8 +97,29 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_co
         localCtrs[local_predictor_idx]++;
     } else {
         DPRINTF(LCT, "Load classification updated as incorrect.\n");
-        localCtrs[local_predictor_idx]--;
+        if (prediction == LVP_CONSTANT && invalidateConstToZero) {
+            while (localCtrs[local_predictor_idx] != LVP_STRONG_UNPREDICTABLE) {
+                localCtrs[local_predictor_idx]--;
+            }
+        } else {
+            localCtrs[local_predictor_idx]--;
+        }
     }
+
+    uint8_t counter_val = localCtrs[local_predictor_idx];
+    return getPrediction(counter_val);
+}
+
+void
+LoadClassificationTable::reset()
+{
+    auto zeroCounter = new SatCounter(localCtrBits, 0);
+    for (int c = 0; c < localPredictorSets; c++)
+    {
+        localCtrs[c] = *zeroCounter;
+    }
+
+    delete zeroCounter;
 }
 
 inline

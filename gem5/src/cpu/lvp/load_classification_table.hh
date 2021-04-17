@@ -45,14 +45,21 @@ class LoadClassificationTable : public SimObject
 
     /**
      * Updates the branch predictor with the actual result of a branch.
+     * @param tid ThreadID of the thread to predict.
      * @param inst_addr The address of the instruction to update.
-     * @param taken Whether or not the branch was taken.
+     * @param prediction The prediction that was associated with this instruction on decode.
+     * @param prediction_correct Whether or not the load prediction was correct.
+     * @return Updated LVPType of the location
      */
-    void update(ThreadID tid, Addr inst_addr, bool prediction_correct,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget);
+    LVPType update(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct);
 
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }
+
+    /**
+     * @brief Resets all saturating counters in LCT.
+     */
+    void reset();
 
   private:
     /**
@@ -83,6 +90,8 @@ class LoadClassificationTable : public SimObject
 
     /** Number of bits to shift instructions by for predictor addresses. */
     const unsigned instShiftAmt;
+
+    const bool invalidateConstToZero;
 };
 
 #endif // __CPU_LVP_LOADCLASSIFICATIONTABLE_HH__
