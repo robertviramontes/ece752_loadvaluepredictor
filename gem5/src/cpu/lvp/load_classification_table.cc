@@ -110,6 +110,18 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
     return getPrediction(counter_val);
 }
 
+void
+LoadClassificationTable::reset()
+{
+    auto zeroCounter = new SatCounter(localCtrBits, 0);
+    for (int c = 0; c < localPredictorSets; c++)
+    {
+        localCtrs[c] = *zeroCounter;
+    }
+
+    delete zeroCounter;
+}
+
 inline
 LVPType
 LoadClassificationTable::getPrediction(uint8_t &count)
