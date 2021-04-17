@@ -40,6 +40,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
       localPredictorSets(localPredictorSize / localCtrBits),
       localCtrs(localPredictorSets, SatCounter(localCtrBits, 0)),
       indexMask(localPredictorSets - 1),
+      invalidateConstToZero(false),
       instShiftAmt(0) // TODO what is correct???
 {
     if (!isPowerOf2(localPredictorSize)) {
@@ -78,7 +79,7 @@ LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
 }
 
 LVPType
-LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_correct)
+LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct)
 {
     unsigned local_predictor_idx;
 
@@ -96,10 +97,17 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, bool prediction_co
         localCtrs[local_predictor_idx]++;
     } else {
         DPRINTF(LCT, "Load classification updated as incorrect.\n");
-        localCtrs[local_predictor_idx]--;
+        if (prediction == LVP_CONSTANT && invalidateConstToZero) {
+            while (localCtrs[local_predictor_idx] != LVP_STRONG_UNPREDICTABLE) {
+                localCtrs[local_predictor_idx]--;
+            }
+        } else {
+            localCtrs[local_predictor_idx]--;
+        }
     }
 
-    return getPrediction(localCtrs[local_predictor_idx]);
+    uint8_t counter_val = localCtrs[local_predictor_idx];
+    return getPrediction(counter_val);
 }
 
 inline

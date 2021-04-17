@@ -49,10 +49,15 @@ class LoadClassificationTable : public SimObject
      * @param taken Whether or not the branch was taken.
      * @return Updated LVPType of the location
      */
-    LVPType update(ThreadID tid, Addr inst_addr, bool prediction_correct);
+    LVPType update(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct);
 
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }
+
+    /**
+     * @brief Resets all saturating counters in LCT.
+     */
+    void reset();
 
   private:
     /**
@@ -83,6 +88,8 @@ class LoadClassificationTable : public SimObject
 
     /** Number of bits to shift instructions by for predictor addresses. */
     const unsigned instShiftAmt;
+
+    const bool invalidateConstToZero;
 };
 
 #endif // __CPU_LVP_LOADCLASSIFICATIONTABLE_HH__
