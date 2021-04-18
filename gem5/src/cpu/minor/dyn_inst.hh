@@ -191,6 +191,12 @@ class MinorDynInst : public RefCounted
 
     uint64_t loadPredictedValue;
 
+    /** Stores the virtual address of the instruction */
+    Addr effAddr;
+
+    /** Indicates that the virtual address has been set and effAddr is valid */
+    bool effAddrValid = false;
+
     /** Fields only set during execution */
 
     /** FU this instruction is issued to */
