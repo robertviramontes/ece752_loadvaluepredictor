@@ -506,8 +506,12 @@ class BaseO3DynInst : public BaseDynInst<Impl>
 
     void 
     lvpStoreAddressLookup() {
-        if(!this->effAddrValid()) panic("Virtual address of store not valid yet");
-        this->cpu->lvp->processStoreAddress(this->effAddr, this->threadNumber);
+        if(!this->effAddrValid()) {
+            panic("Virtual address of store not valid yet");
+        }
+        else {
+            this->cpu->lvp->processStoreAddress(this->threadNumber, this->effAddr);
+        }
     }
 
     void 
