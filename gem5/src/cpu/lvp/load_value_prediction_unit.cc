@@ -31,8 +31,9 @@ LvptResult
 LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 {
     totalLoads++;
-    auto lctResult = loadClassificationTable->lookup(tid, inst_addr);
-    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr);
+    bool lvptResultValid = false;
+    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
+    auto lctResult = lvptResultValid ? loadClassificationTable->lookup(tid, inst_addr) : LVP_STRONG_UNPREDICTABLE;
 
     LvptResult result;
     result.taken = lctResult;
