@@ -91,7 +91,7 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 
 // data = 0 represent invalid entry.
 RegVal 
-LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC)
+LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultValid)
 {
     unsigned LVPT_idx = getIndex(instPC, tid);
 
@@ -100,6 +100,7 @@ LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC)
     if (valid(instPC, tid)) {
         DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n", 
             tid, instPC, LVPT[LVPT_idx].target);
+        *lvptResultValid = true;
         return LVPT[LVPT_idx].target;
     } else {
         DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
