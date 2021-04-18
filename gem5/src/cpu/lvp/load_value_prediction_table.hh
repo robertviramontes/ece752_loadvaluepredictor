@@ -38,12 +38,7 @@ class LoadValuePredictionTable : public SimObject
         /** The entry's tag. */
         Addr tag;
 
-        /** The entry's target. 
-	 * prajyot :: TODO 
-	 * Change to typedef from TheISA to 
-	 * data: int/signed/unisgned
-	 */
-        //prajyotg :: TheISA::PCState target;
+        /** The entry's target. */ 
         RegVal target;
 
         /** The entry's thread id. */
@@ -56,7 +51,6 @@ class LoadValuePredictionTable : public SimObject
   public:
     /** Creates a LVPT with the given number of entries, number of bits per
      *  tag, and instruction offset amount.
-     *  prajyotg :: TODO :: look about instr-offset
      *  @param numEntries Number of entries for the LVPT.
      *  @param tagBits Number of bits for each tag in the LVPT.
      *  @param instShiftAmt Offset amount for instructions to ignore alignment.
@@ -69,9 +63,7 @@ class LoadValuePredictionTable : public SimObject
      *  @param inst_PC The address of the branch to look up.
      *  @param tid The thread id.
      *  @return Returns the predicated load value.
-     *  prajyotg :: TODO :: Update TheISA with data type
      */
-    //prajyotg :: TheISA::PCState lookup(Addr instPC, ThreadID tid);
     RegVal lookup(Addr instPC, ThreadID tid);
 
     /** Checks if the load entry is in the LVPT.
@@ -84,11 +76,9 @@ class LoadValuePredictionTable : public SimObject
     /** Updates the LVPT with the latest predicted Load Value.
      *  @param inst_PC The address of the branch being updated.
      *  @param target_PC The predicted target data.
-     * prajyotg :: TODO
      *  @param tid The thread id.
      */
     
-    //prajyotg void update(Addr instPC, const TheISA::PCState &targetPC,
     void update(Addr instPC, const RegVal target, ThreadID tid);
 
     /** Returns the index into the LVPT, based on the branch's PC.

@@ -93,8 +93,6 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 }
 
 // data = 0 represent invalid entry.
-// prajyotg :: TODO :: better representation of incorrect data
-// prajyotg ::TheISA::PCState
 RegVal 
 LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
 {
@@ -116,7 +114,7 @@ LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
 
 void
 //prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
-LoadValuePredictionTable::update(Addr instPC, const unsigned target, ThreadID tid)
+LoadValuePredictionTable::update(Addr instPC, const RegVal target, ThreadID tid)
 {
     DPRINTF(LVPT, "LVPT : Updating the value in the LVPT \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
