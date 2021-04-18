@@ -39,6 +39,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
       localCtrBits(params->localCtrBits),
       localPredictorSets(localPredictorSize / localCtrBits),
       localCtrs(localPredictorSets, SatCounter(localCtrBits, 0)),
+      localCtrThreads(localPredictorSets, 0),
       indexMask(localPredictorSets - 1),
       invalidateConstToZero(params->invalidateConstToZero),
       instShiftAmt(0) // TODO what is correct???
@@ -67,13 +68,17 @@ LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
 {
     unsigned local_predictor_idx = getLocalIndex(inst_addr);
 
-    DPRINTF(LCT, "Looking up index %#x\n",
-            local_predictor_idx);
+    if (tid != localCtrThreads[local_predictor_idx])
+    {
+        return LVP_STRONG_UNPREDICTABLE;
+    }
+
+    DPRINTF(LCT, "Thread ID: %d", tid);
 
     uint8_t counter_val = localCtrs[local_predictor_idx];
 
-    DPRINTF(LCT, "prediction is %i.\n",
-            (int)counter_val);
+    DPRINTF(LCT, "During lookup index %#x had value %i\n",
+            local_predictor_idx, (int)counter_val);
 
     return getPrediction(counter_val);
 }
@@ -92,18 +97,25 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
 
-    if (prediction_correct) {
-        DPRINTF(LCT, "Load classification updated as correct.\n");
-        localCtrs[local_predictor_idx]++;
-    } else {
-        DPRINTF(LCT, "Load classification updated as incorrect.\n");
-        if (prediction == LVP_CONSTANT && invalidateConstToZero) {
-            while (localCtrs[local_predictor_idx] != LVP_STRONG_UNPREDICTABLE) {
+    if (tid == localCtrThreads[local_predictor_idx])
+    {
+        if (prediction_correct) {
+            DPRINTF(LCT, "Load classification updated as correct.\n");
+            localCtrs[local_predictor_idx]++;
+        } else {
+            DPRINTF(LCT, "Load classification updated as incorrect.\n");
+            if (prediction == LVP_CONSTANT && invalidateConstToZero) {
+                resetCtr(local_predictor_idx);
+            } else {
                 localCtrs[local_predictor_idx]--;
             }
-        } else {
-            localCtrs[local_predictor_idx]--;
         }
+    }
+    else
+    {
+        // Destructive interference with a different thread, reset this index and update the thread
+        localCtrThreads[local_predictor_idx] = tid;
+        resetCtr(local_predictor_idx);
     }
 
     uint8_t counter_val = localCtrs[local_predictor_idx];
@@ -120,6 +132,14 @@ LoadClassificationTable::reset()
     }
 
     delete zeroCounter;
+}
+
+void
+LoadClassificationTable::resetCtr(unsigned local_predictor_idx)
+{
+    while (localCtrs[local_predictor_idx] != LVP_STRONG_UNPREDICTABLE) {
+        localCtrs[local_predictor_idx]--;
+    }
 }
 
 inline

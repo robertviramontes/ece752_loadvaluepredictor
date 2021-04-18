@@ -64,7 +64,7 @@ class LoadValuePredictionTable : public SimObject
      *  @param tid The thread id.
      *  @return Returns the predicated load value.
      */
-    RegVal lookup(Addr instPC, ThreadID tid);
+    RegVal lookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
 
     /** Checks if the load entry is in the LVPT.
      *  @param inst_PC The address of the branch to look up.
