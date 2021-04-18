@@ -138,6 +138,8 @@ class PhysRegFile
      */
     std::list<PhysRegIdPtr> regsWithPredictedLoad;
 
+    std::list<PhysRegIdPtr> mispredictList;
+
   public:
     /**
      * Constructs a physical register file with the specified amount of
@@ -204,6 +206,19 @@ class PhysRegFile
         }
         if (itr != regsWithPredictedLoad.end())
             regsWithPredictedLoad.erase(itr);
+    }
+
+    void addToMispredictList(PhysRegIdPtr reg) {
+        mispredictList.push_back(reg);
+    }
+
+    bool searchMispredictList(PhysRegIdPtr src_reg) {
+        auto itr = mispredictList.begin();
+        while(itr != mispredictList.end()) {
+            if(*itr == src_reg) return true;
+            itr++;
+        }
+        return false;
     }
 
     /** Initialize the free list */

@@ -1162,7 +1162,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                             scoreboard->setReg(inst->renamedDestRegIdx(0));
                         }
                         else if(inst->isFloating()) {
-                            inst->setFloatRegOperand(inst->staticInst.get(), 
+                            inst->setFloatRegOperandBits(inst->staticInst.get(), 
                                                    0, prediction.second);
                             instQueue.wakeDependents(inst);
                             scoreboard->setReg(inst->renamedDestRegIdx(0));
@@ -1190,7 +1190,8 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                 if(inst->numDestRegs() == 1) {
                     // Tag the destination register for subsequent dependent 
                     // instructions
-                    inst->tagLVPDestReg(0);
+                    //inst->tagLVPDestReg(0);
+                    /*
                     if(inst->isInteger()) {
                         inst->setIntRegOperand(inst->staticInst.get(), 
                                                0, prediction.second);
@@ -1206,6 +1207,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                     else {
                         // This isn't supposed to happen
                     }
+                    */
                 }
                 else {
                     // This isn't supposed to happen (except maybe for
@@ -1239,6 +1241,14 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                     "encountered, adding to LSQ.\n", tid);
 
             ldstQueue.insertStore(inst);
+
+            /**
+             * SATVIK:
+             * Stores could finish execution out of order with respect to other
+             * loads. Processing the store address after execution has completed
+             * could invalidate an older load which is constant.
+             */
+            //inst->lvpStoreAddressLookup();
 
             ++iewDispStoreInsts;
 
@@ -1454,7 +1464,13 @@ DefaultIEW<Impl>::executeInsts()
                  */
                 if(inst->isExecuted() && fault == NoFault) {
                     if (inst->numDestRegs() == 1) {
-                        inst->verifyPrediction(0);
+                        bool verify = inst->verifyPrediction(0);
+                        if(!verify && inst->isSpeculatedLoad()) {
+                            // Add the destination register to a list of 
+                            // mispredicted registers so that the instns in the
+                            // IQ know that they have to execute again.
+                            //instQueue.addToMispredictList(inst, 0);
+                        }
                     }
                     else {
                         // This shouldn't happen
@@ -1514,6 +1530,9 @@ DefaultIEW<Impl>::executeInsts()
                     inst->forwardOldRegs();
             }
 
+            /**
+             * Do this only if the source operands were not speculated.
+             */
             inst->setExecuted();
 
             instToCommit(inst);

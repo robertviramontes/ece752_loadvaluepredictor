@@ -440,6 +440,14 @@ class FullO3CPU : public BaseO3CPU
         regFile.clearPredictedLoadRegister(reg);
     }
 
+    void addToMispredictList(PhysRegIdPtr reg) {
+        regFile.addToMispredictList(reg);
+    }
+
+    bool searchMispredictList(PhysRegIdPtr src_reg) {
+        return regFile.searchMispredictList(src_reg);
+    }
+
     const VecRegContainer& readArchVecReg(int reg_idx, ThreadID tid) const;
     /** Read architectural vector register for modification. */
     VecRegContainer& getWritableArchVecReg(int reg_idx, ThreadID tid);

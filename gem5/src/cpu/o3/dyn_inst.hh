@@ -50,6 +50,7 @@
 #include "cpu/base_dyn_inst.hh"
 #include "cpu/inst_seq.hh"
 #include "cpu/reg_class.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 
 class Packet;
 
@@ -122,6 +123,8 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     LVPType _classification;
 
     RegVal _predictedVal;
+
+    bool _specExecOnLoad;
 
   public:
 #if TRACING_ON
@@ -443,8 +446,8 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     verifyConstLoad(ThreadID tid) {
         Addr lvpt_index = this->cpu->lvp->lookupLVPTIndex(tid, 
                                                           this->instAddr());
-        return this->cpu->lvp->processLoadAddress(tid, this->effAddr, 
-                                                  lvpt_index);
+        return this->cpu->lvp->processLoadAddress(tid,
+                                                  this->instAddr(), lvpt_index);
     } 
 
     void
@@ -457,31 +460,74 @@ class BaseO3DynInst : public BaseDynInst<Impl>
         return this->cpu->checkLVPTag(this->_srcRegIdx[idx]);
     }
 
+    PhysRegIdPtr
+    getSrcRegPtr(int idx) {
+        return this->_srcRegIdx[idx];
+    }
+
+    PhysRegIdPtr
+    getDestRegPtr(int idx) {
+        return this->_destRegIdx[idx];
+    }
+
     void 
     removeLVPTag(int idx) {
         this->cpu->removeLVPTag(this->_destRegIdx[idx]);
     }
 
+    void 
+    addToMispredictList(int idx) {
+        this->cpu->addToMispredictList(this->_destRegIdx[idx]);
+    }
+
+    bool 
+    searchMispredictList(int idx) {
+        return this->cpu->searchMispredictList(this->_srcRegIdx[idx]);
+    }
+
     bool 
     verifyPrediction(int idx) {
-        RegVal temp;
+        RegVal temp = 0;
         if(this->isInteger()) {
             temp = this->cpu->readIntReg(_destRegIdx[idx]);
         }
         else if(this->isFloating()) {
             temp = this->cpu->readFloatReg(_destRegIdx[idx]);
         }
-        else {
-            return true;
-        }
+        //else {
+        //    return true;
+        //}
         this->removeLVPTag(idx);
+        if(!this->effAddrValid()) panic("Virtual address not valid yet");
         return this->cpu->lvp->verifyPrediction(this->threadNumber, 
-                        this->instAddr(), this->effAddr, temp, _predictedVal);
+                        this->instAddr(), this->effAddr, temp, _predictedVal, 
+                        _classification);
     }
 
     void 
     lvpStoreAddressLookup() {
-        this->cpu->lvp->processStoreAddress(inst->effAddr, this->threadNumber);
+        if(!this->effAddrValid()) panic("Virtual address of store not valid yet");
+        this->cpu->lvp->processStoreAddress(this->effAddr, this->threadNumber);
+    }
+
+    void 
+    speculativeExecOnLoad() {
+        _specExecOnLoad = true;
+    }
+
+    void 
+    resetSpeculativeExecOnLoad() {
+        _specExecOnLoad = false;
+    }
+
+    bool
+    isExecOnSpecLoad() {
+        return _specExecOnLoad;
+    }
+
+    bool
+    isSpeculatedLoad() {
+        return (_classification == LVP_PREDICTABLE);
     }
 };
 
