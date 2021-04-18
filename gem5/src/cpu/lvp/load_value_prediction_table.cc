@@ -1,35 +1,13 @@
-/*
- * Copyright (c) 2004-2006 The Regents of The University of Michigan
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met: redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer;
- * redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution;
- * neither the name of the copyright holders nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/****************************************************************************/
+// Author 	: Prajyot Gupta
+// Department   : Grad Student @ Dept. of Electrical & Computer Engineering
+// Contact      : pgupta54@wisc.edu
+// Project      : ECE 752
+/****************************************************************************/
 
 #include "cpu/lvp/load_value_prediction_table.hh"
 
 #include "base/intmath.hh"
-#include "base/logging.hh"
 #include "base/trace.hh"
 #include "debug/LVPT.hh"
 
@@ -37,59 +15,115 @@ LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTabl
     : SimObject(params),
       numEntries(params->entries),
       historyDepth(params->historyDepth),
-      indexMask(numEntries - 1),
-      instShiftAmt(0) // TODO what is correct???
+      idxMask(numEntries - 1),
+      instShiftAmt(0) 
+
 {
+    DPRINTF(LVPT, "LVPT: Creating LVPT object.\n");
+
     if (!isPowerOf2(numEntries)) {
-        fatal("Invalid LVPT number of entries!\n");
+        fatal("LVPT entries is not a power of 2!");
     }
 
-    DPRINTF(LVPT, "LVPT index mask: %#x\n", indexMask);
+    LVPT.resize(numEntries);
 
-    DPRINTF(LVPT, "LVPT entries: %i\n",
-            numEntries);
+    DPRINTF(LVPT, "LVPT: Doing an initial reset \n");
+    for (unsigned i = 0; i < numEntries; ++i) {
+        LVPT[i].valid = false;
+    }
 
-    DPRINTF(LVPT, "LVPT history depth: %i\n", historyDepth);
-
-    DPRINTF(LVPT, "instruction shift amount: %i\n",
-            instShiftAmt);
+    idxMask = numEntries - 1;
+    tagMask = (1 << tagBits) - 1;
+    tagShiftAmt = instShiftAmt + floorLog2(numEntries);
 }
 
-uint64_t
-LoadValuePredictionTable::lookup(ThreadID tid, Addr inst_addr)
-{
-    unsigned local_predictor_idx = getLocalIndex(inst_addr);
-
-    DPRINTF(LVPT, "Looking up index %#x\n",
-            local_predictor_idx);
-
-    // TODO lookup value in table
-    return 0;
-}
-
+/* Reset API */
 void
-LoadValuePredictionTable::update(ThreadID tid, Addr inst_addr, bool prediction_correct,
-                bool squashed, const StaticInstPtr & inst, Addr corrTarget)
+LoadValuePredictionTable::reset()
 {
-    unsigned local_predictor_idx;
-
-    // No state to restore, and we do not update on the wrong
-    // path.
-    if (squashed) {
-        return;
+    DPRINTF(LVPT, "LVPT : Calling the Reset API \n");
+    for (unsigned i = 0; i < numEntries; ++i) {
+        LVPT[i].valid = false;
     }
+}
 
-    // Update the local predictor.
-    local_predictor_idx = getLocalIndex(inst_addr);
-
-    DPRINTF(LVPT, "Looking up index %#x\n", local_predictor_idx);
+/* APIs to get index and tag*/
+unsigned
+LoadValuePredictionTable::getIndex(Addr instPC, ThreadID tid)
+{
+    // Need to shift PC over by the word offset.
+    // Math: ((instPC >> instShiftAmt)^(tid<<(tagShiftAmt-instShiftAmt-log2NumThreads)))&idxMask;
+    DPRINTF(LVPT, "LVPT : Getting Index \n");
+    return ((instPC >> instShiftAmt)
+            ^ (tid << (tagShiftAmt - instShiftAmt - log2NumThreads)))
+            & idxMask;
 }
 
 inline
-unsigned
-LoadValuePredictionTable::getLocalIndex(Addr &inst_addr)
+Addr
+LoadValuePredictionTable::getTag(Addr instPC)
 {
-    return (inst_addr >> instShiftAmt) & indexMask;
+    DPRINTF(LVPT, "LVPT : Getting Tag \n");
+    return (instPC >> tagShiftAmt) & tagMask;
+}
+
+/** Checks if the load entry is in the LVPT.i **/
+bool
+LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
+{
+    DPRINTF(LVPT, "LVPT : Checking if LVPT entry is valid \n");
+    unsigned LVPT_idx = getIndex(instPC, tid);
+
+    Addr inst_tag = getTag(instPC);
+
+    // Making sure index doesn't go out of bounds
+    assert(LVPT_idx < numEntries);
+
+    // Check if: (a) LVPT entry is valid
+    // (b) index matches
+    // (c) tag matches
+    if (LVPT[LVPT_idx].valid
+        && inst_tag == LVPT[LVPT_idx].tag
+        && LVPT[LVPT_idx].tid == tid) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// data = 0 represent invalid entry.
+RegVal 
+LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
+{
+    DPRINTF(LVPT, "LVPT : Looking up the entry in PC :: prajyotg  \n");
+    unsigned LVPT_idx = getIndex(instPC, tid);
+
+    Addr inst_tag = getTag(instPC);
+
+    assert(LVPT_idx < numEntries);
+
+    if (LVPT[LVPT_idx].valid
+        && inst_tag == LVPT[LVPT_idx].tag
+        && LVPT[LVPT_idx].tid == tid) {
+        return LVPT[LVPT_idx].target;
+    } else {
+        return 0;
+    }
+}
+
+void
+//prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
+LoadValuePredictionTable::update(Addr instPC, const RegVal target, ThreadID tid)
+{
+    DPRINTF(LVPT, "LVPT : Updating the value in the LVPT \n");
+    unsigned LVPT_idx = getIndex(instPC, tid);
+
+    assert(LVPT_idx < numEntries);
+
+    LVPT[LVPT_idx].tid = tid;
+    LVPT[LVPT_idx].valid = true;
+    LVPT[LVPT_idx].target = target;
+    LVPT[LVPT_idx].tag = getTag(instPC);
 }
 
 LoadValuePredictionTable*

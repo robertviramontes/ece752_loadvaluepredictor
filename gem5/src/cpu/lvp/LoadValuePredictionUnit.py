@@ -12,6 +12,8 @@ class LoadClassificationTable(SimObject):
 
     localPredictorSize = Param.Unsigned(512, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
+    invalidateConstToZero = Param.Bool(False, "Reset counter to 0 on constant invalidation")
+    #Fully Assoc/direct mapped
 
 class LoadValuePredictionTable(SimObject):
     type = 'LoadValuePredictionTable'
@@ -19,10 +21,13 @@ class LoadValuePredictionTable(SimObject):
 
     entries = Param.Unsigned(1024, "Number of entries in the predicttion table")
     historyDepth = Param.Unsigned(1, "History depth")
+    #Fully Assoc/direct mapped
 
 class ConstantVerificationUnit(SimObject):
     type = 'ConstantVerificationUnit'
     cxx_header = "cpu/lvp/constant_verification_unit.hh"
+    entries = Param.Unsigned(8, "Number of entries in the CVU CAM")
+    replacementPolicy = Param.Unsigned(1, "Replacement policy of the fully-assoc CAM")
  
 class LoadValuePredictionUnit(SimObject):
     type = 'LoadValuePredictionUnit'
