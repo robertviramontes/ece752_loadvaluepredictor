@@ -72,7 +72,7 @@ class LoadValuePredictionTable : public SimObject
      *  prajyotg :: TODO :: Update TheISA with data type
      */
     //prajyotg :: TheISA::PCState lookup(Addr instPC, ThreadID tid);
-    unsigned lookup(Addr instPC, ThreadID tid);
+    RegVal lookup(Addr instPC, ThreadID tid);
 
     /** Checks if the load entry is in the LVPT.
      *  @param inst_PC The address of the branch to look up.
