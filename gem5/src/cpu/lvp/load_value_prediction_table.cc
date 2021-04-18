@@ -18,14 +18,6 @@ LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTabl
       idxMask(numEntries - 1),
       instShiftAmt(0) 
 
-//prajyotg :: Robert's implementation :: LoadValuePredictionTable::LoadValuePredictionTable(unsigned _numEntries,
-//prajyotg :: Robert's implementation ::                          unsigned _tagBits,
-//prajyotg :: Robert's implementation ::                          unsigned _instShiftAmt,
-//prajyotg :: Robert's implementation ::                          unsigned _num_threads)
-//prajyotg :: Robert's implementation ::     : numEntries(_numEntries),
-//prajyotg :: Robert's implementation ::       tagBits(_tagBits),
-//prajyotg :: Robert's implementation ::       instShiftAmt(_instShiftAmt),
-//prajyotg :: Robert's implementation ::       log2NumThreads(floorLog2(_num_threads))
 {
     DPRINTF(LVPT, "LVPT: Creating LVPT object.\n");
 
