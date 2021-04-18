@@ -61,9 +61,6 @@ class LoadValuePredictionTable : public SimObject
      *  @param tagBits Number of bits for each tag in the LVPT.
      *  @param instShiftAmt Offset amount for instructions to ignore alignment.
      */
-// TODO :: Discuss with Robert
-    //prajyotg :: going by Roberts implementation :: LoadValuePredictionTable(unsigned numEntries, unsigned tagBits,
-    //prajyotg :: going by Roberts implementation ::              unsigned instShiftAmt, unsigned numThreads);
     LoadValuePredictionTable(const LoadValuePredictionTableParams *params);
     
     void reset();
