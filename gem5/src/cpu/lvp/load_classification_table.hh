@@ -73,6 +73,9 @@ class LoadClassificationTable : public SimObject
     /** Calculates the local index based on the PC. */
     inline unsigned getLocalIndex(Addr &PC);
 
+    /** Resets the ctr at the specified index. */
+    inline void resetCtr(unsigned local_predictor_idx);
+
     /** Size of the local predictor. */
     const unsigned localPredictorSize;
 
@@ -84,6 +87,7 @@ class LoadClassificationTable : public SimObject
 
     /** Array of counters that make up the local predictor. */
     std::vector<SatCounter> localCtrs;
+    std::vector<ThreadID> localCtrThreads;
 
     /** Mask to get index bits. */
     const unsigned indexMask;

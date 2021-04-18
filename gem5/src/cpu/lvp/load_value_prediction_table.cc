@@ -71,10 +71,8 @@ LoadValuePredictionTable::getTag(Addr instPC)
 bool
 LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 {
-    DPRINTF(LVPT, "LVPT : Checking if LVPT entry is valid \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
 
-    Addr inst_tag = getTag(instPC);
 
     // Making sure index doesn't go out of bounds
     assert(LVPT_idx < numEntries);
@@ -83,30 +81,30 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
     // (b) index matches
     // (c) tag matches
     if (LVPT[LVPT_idx].valid
-        && inst_tag == LVPT[LVPT_idx].tag
         && LVPT[LVPT_idx].tid == tid) {
         return true;
     } else {
+        DPRINTF(LVPT, "LVPT : Checking if LVPT entry is valid \n");
         return false;
     }
 }
 
 // data = 0 represent invalid entry.
 RegVal 
-LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
+LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultValid)
 {
-    DPRINTF(LVPT, "LVPT : Looking up the entry in PC :: prajyotg  \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
-
-    Addr inst_tag = getTag(instPC);
 
     assert(LVPT_idx < numEntries);
 
-    if (LVPT[LVPT_idx].valid
-        && inst_tag == LVPT[LVPT_idx].tag
-        && LVPT[LVPT_idx].tid == tid) {
+    if (valid(instPC, tid)) {
+        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n", 
+            tid, instPC, LVPT[LVPT_idx].target);
+        *lvptResultValid = true;
         return LVPT[LVPT_idx].target;
     } else {
+        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
+            tid, instPC);
         return 0;
     }
 }
@@ -115,8 +113,8 @@ void
 //prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
 LoadValuePredictionTable::update(Addr instPC, const RegVal target, ThreadID tid)
 {
-    DPRINTF(LVPT, "LVPT : Updating the value in the LVPT \n");
     unsigned LVPT_idx = getIndex(instPC, tid);
+    DPRINTF(LVPT, "LVPT : Updating the value in the LVPT at index %ld \n", LVPT_idx);
 
     assert(LVPT_idx < numEntries);
 

@@ -31,12 +31,19 @@ LvptResult
 LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 {
     totalLoads++;
-    auto lctResult = loadClassificationTable->lookup(tid, inst_addr);
-    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr);
+    bool lvptResultValid = false;
+    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
+    auto lctResult = lvptResultValid ? loadClassificationTable->lookup(tid, inst_addr) : LVP_STRONG_UNPREDICTABLE;
 
     LvptResult result;
     result.taken = lctResult;
     result.value = lvptResult;
+
+    if(lctResult == LVP_CONSTANT)
+    {
+        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
+            tid, inst_addr, lvptResult);
+    }
 
     // Stat collection
     if(lctResult == LVP_CONSTANT) 
@@ -71,7 +78,7 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
     else if(predicted_val == correct_val && classification == LVP_PREDICTABLE) {
         numPredictableCorrect++;
     }
-    loadValuePredictionTable->update(pc, tid, correct_val);
+    loadValuePredictionTable->update(pc, correct_val, tid);
     if(classification != LVP_CONSTANT) {
         auto result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
         if(result == LVP_CONSTANT) {
@@ -100,8 +107,15 @@ LoadValuePredictionUnit::lookupLVPTIndex(ThreadID tid, Addr pc) {
 }
 
 bool 
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, 
-                                            Addr lvpt_index) {
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc) {
+
+    Addr lvpt_index = loadValuePredictionTable->getIndex(pc, tid);
+    return processLoadAddress(tid, pc, lvpt_index);
+}
+
+bool 
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index) {
+
     bool ret = constantVerificationUnit->processLoadAddress(pc, lvpt_index, tid);
     if(!ret) {
         // Load is not in the CVU CAM... Invalidate the const state in the LCT
