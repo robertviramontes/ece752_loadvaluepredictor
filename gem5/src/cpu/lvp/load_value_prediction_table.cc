@@ -32,7 +32,6 @@ LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTabl
         LVPT[i].valid = false;
     }
 
-    //prajyotg :: TODO :: To discuss
     idxMask = numEntries - 1;
     tagMask = (1 << tagBits) - 1;
     tagShiftAmt = instShiftAmt + floorLog2(numEntries);
