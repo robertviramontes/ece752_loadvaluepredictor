@@ -17,12 +17,13 @@
 #include "params/LoadValuePredictionUnit.hh"
 #include "sim/sim_object.hh"
 #include "base/types.hh"
+#include "base/statistics.hh"
 
 #include "cpu/base_dyn_inst.hh"
 
 struct LvptResult {
     LVPType taken;
-    uint64_t value;
+    RegVal value;
 };
 
 class LoadValuePredictionUnit : public SimObject
@@ -32,6 +33,14 @@ class LoadValuePredictionUnit : public SimObject
     LoadClassificationTable* loadClassificationTable;
     LoadValuePredictionTable* loadValuePredictionTable;
     ConstantVerificationUnit* constantVerificationUnit;
+
+    Stats::Scalar numPredictableLoads;
+    Stats::Scalar numPredictableCorrect;
+    Stats::Scalar numPredictableIncorrect;
+    Stats::Scalar numConstLoads;
+    Stats::Scalar numConstLoadsMispredicted;
+    Stats::Scalar numConstLoadsCorrect;
+    Stats::Scalar totalLoads;
 
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
@@ -52,11 +61,13 @@ class LoadValuePredictionUnit : public SimObject
      */
     void startup();
 
+    void regStats() override;
+
     std::pair<LVPType, RegVal> predictLoad(ThreadID tid, Addr pc);
 
     Addr lookupLVPTIndex(ThreadID tid, Addr pc);
 
-    bool processLoadAddress(ThreadID tid, Addr load_address, Addr lvpt_index);
+    bool processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index);
 
     /** 
      * @brief Used to process a store to the store_address and update the CVU
@@ -68,7 +79,9 @@ class LoadValuePredictionUnit : public SimObject
     bool processStoreAddress(ThreadID tid, Addr store_address);
 
     bool verifyPrediction(ThreadID tid, Addr pc, Addr load_address,
-                          RegVal correct_val, RegVal predicted_val);
+                          RegVal correct_val, RegVal predicted_val,
+                          LVPType classification);
+
 };
 
 #endif // __CPU_LVP_LOADVALUEPREDICTIONUNIT_HH__

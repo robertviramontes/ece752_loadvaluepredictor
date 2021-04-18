@@ -52,7 +52,7 @@
 #define LL(N)           ((int64_t)N##LL)
 
 #define LVP_CONSTANT             3
-#define LVP_PREDICATABLE         2
+#define LVP_PREDICTABLE          2
 #define LVP_WEAK_UNPREDICTABLE   1
 #define LVP_STRONG_UNPREDICTABLE 0
 
