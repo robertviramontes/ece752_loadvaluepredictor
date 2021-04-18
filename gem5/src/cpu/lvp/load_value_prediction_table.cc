@@ -95,7 +95,7 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 // data = 0 represent invalid entry.
 // prajyotg :: TODO :: better representation of incorrect data
 // prajyotg ::TheISA::PCState
-unsigned 
+RegVal 
 LoadValuePredictionTable::lookup(Addr instPC, ThreadID tid)
 {
     DPRINTF(LVPT, "LVPT : Looking up the entry in PC :: prajyotg  \n");
