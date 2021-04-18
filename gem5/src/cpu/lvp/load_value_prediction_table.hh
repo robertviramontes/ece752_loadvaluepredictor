@@ -44,7 +44,7 @@ class LoadValuePredictionTable : public SimObject
 	 * data: int/signed/unisgned
 	 */
         //prajyotg :: TheISA::PCState target;
-        unsigned target;
+        RegVal target;
 
         /** The entry's thread id. */
         ThreadID tid;
