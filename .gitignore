@@ -31,5 +31,8 @@
 *.out
 *.app
 
+# gem5 output
+*m5out/*
+
 # Visual Studio Settings
 .vscode/*
