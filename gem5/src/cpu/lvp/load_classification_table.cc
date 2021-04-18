@@ -132,7 +132,7 @@ LoadClassificationTable::getPrediction(uint8_t &count)
     return (count == 0) ? LVP_STRONG_UNPREDICTABLE 
             : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE 
             : count == (power(2, localCtrBits) -1) ? LVP_CONSTANT 
-            : LVP_PREDICATABLE;
+            : LVP_PREDICTABLE;
 }
 
 inline
