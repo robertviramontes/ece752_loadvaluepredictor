@@ -89,7 +89,7 @@ class LoadValuePredictionTable : public SimObject
      */
     
     //prajyotg void update(Addr instPC, const TheISA::PCState &targetPC,
-    void update(Addr instPC, const unsigned target, ThreadID tid);
+    void update(Addr instPC, const RegVal target, ThreadID tid);
 
     /** Returns the index into the LVPT, based on the branch's PC.
      *  @param inst_PC The branch to look up.
