@@ -86,7 +86,7 @@ class LoadValuePredictionTable : public SimObject
      *  @return Returns the index into the LVPT.
      */
     
-    inline unsigned getIndex(Addr instPC, ThreadID tid);
+    unsigned getIndex(Addr instPC, ThreadID tid);
 
     /** Returns the tag bits of a given address.
      *  @param inst_PC The branch's address.

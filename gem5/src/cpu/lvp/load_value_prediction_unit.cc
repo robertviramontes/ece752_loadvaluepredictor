@@ -48,12 +48,6 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 }
 
 bool
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr load_address, Addr lvpt_index)
-{
-    constantVerificationUnit->processLoadAddress(load_address, lvpt_index, tid);
-}
-
-bool
 LoadValuePredictionUnit::processStoreAddress(ThreadID tid, Addr store_address)
 {
     constantVerificationUnit->processStoreAddress(tid, store_address);
@@ -79,7 +73,8 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
     loadValuePredictionTable->update(pc, tid, correct_val);
     if(classification != LVP_CONSTANT) {
         auto result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
-        constantVerificationUnit->updateConstLoad(pc, load_address, 
+        if(result == LVP_CONSTANT)
+            constantVerificationUnit->updateConstLoad(pc, load_address, 
                                   loadValuePredictionTable->getIndex(pc, tid),
                                                   tid);
     }

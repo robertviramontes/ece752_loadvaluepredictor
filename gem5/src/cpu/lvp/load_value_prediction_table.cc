@@ -48,7 +48,6 @@ LoadValuePredictionTable::reset()
 }
 
 /* APIs to get index and tag*/
-inline
 unsigned
 LoadValuePredictionTable::getIndex(Addr instPC, ThreadID tid)
 {
