@@ -406,9 +406,10 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                     cpu.loadValuePredictor->verifyPrediction(
                         thread_id,
                         inst->pc.instAddr(), 
-                        inst->pc.instAddr(), 
-                        mem, 
-                        inst->loadPredictedValue);
+                        packet->getAddr(), 
+                        mem,
+                        inst->predictedTaken,
+                        inst->loadPredicted);
 
                 
                 // if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
@@ -529,7 +530,7 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         {
             if (inst->loadPredicted == LVP_CONSTANT)
             {
-                cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->staticInst->, inst->pc.pc());
+                cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.pc());
             }
         }
 
