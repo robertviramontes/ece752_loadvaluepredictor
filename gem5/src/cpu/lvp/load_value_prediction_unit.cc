@@ -57,6 +57,7 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 bool
 LoadValuePredictionUnit::processStoreAddress(ThreadID tid, Addr store_address)
 {
+    DPRINTF(LVP, "Store address lookup for address: 0x%x\n", store_address);
     constantVerificationUnit->processStoreAddress(tid, store_address);
     return true;
 }
@@ -80,16 +81,19 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
     loadValuePredictionTable->update(pc, correct_val, tid);
     if(classification != LVP_CONSTANT) {
         auto result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
-        if(result == LVP_CONSTANT)
+        if(result == LVP_CONSTANT) {
+            DPRINTF(LVP, "[TID: %d] Load instruction 0x%x marked constant by LCT\n", tid, pc);
             constantVerificationUnit->updateConstLoad(pc, load_address, 
                                   loadValuePredictionTable->getIndex(pc, tid),
                                                   tid);
+        }
     }
     return true; 
 }
 
 std::pair<LVPType, RegVal>
 LoadValuePredictionUnit::predictLoad(ThreadID tid, Addr pc) {
+    DPRINTF(LVP, "Load Instruction: 0x%x being processed by LVPU\n", pc);
     std::pair<LVPType, RegVal> temp;
     LvptResult result = this->lookup(tid, pc);
     temp.first = result.taken;
