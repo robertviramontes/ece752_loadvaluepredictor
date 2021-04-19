@@ -235,7 +235,8 @@ Decode::evaluate()
 
                 // If this is a load instruction, check the LVP unit to see if 
                 // it can be predicted and tag the instruction as such
-                if(output_inst->staticInst->isLoad())
+                // TODO I wonder if this is required because we are jumping to a bad address or something
+                if(output_inst && output_inst->staticInst && output_inst->staticInst->isLoad())
                 {
                     auto lvp_result = cpu.loadValuePredictor->lookup(tid, output_inst->pc.instAddr());
                     output_inst->loadPredicted = lvp_result.taken;
