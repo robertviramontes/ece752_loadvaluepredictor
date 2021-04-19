@@ -138,7 +138,17 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 fuIndices[index] = inst->fuIndex;
             }
 
-            if (inst->staticInst->isLoad())
+            // DPRINTF(MinorLoadPredictor, "Instruction %s has below registers:\n", *inst);
+            // for (int s = 0; s < inst->staticInst->numSrcRegs(); s++)
+            // {
+            //     DPRINTF(MinorLoadPredictor, "\t src register idx: %d\n", inst->staticInst->srcRegIdx(s));
+            // }
+            // for (int s = 0; s < inst->staticInst->numDestRegs(); s++)
+            // {
+            //     DPRINTF(MinorLoadPredictor, "\t dest register idx: %d\n", inst->staticInst->destRegIdx(s));
+            // }
+
+            if (false & inst->staticInst->isLoad())
             {
                 /** ROBERT
                  * If we're about to release a load instruction for execution, and it's
@@ -154,20 +164,18 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 // For now, let's just consider constants since that doesn't require squashing the pipeline
                 //    && (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE)) 
                 {
-                    // TODO need to check the CVU that the value is still fine
-
                     DPRINTF(MinorLoadPredictor, "Forwarding value for instruction %s with %d dest registers.\n", *inst, num_dests);
                     DPRINTF(MinorLoadPredictor, "Going to write %ld to register %d.\n", inst->loadPredictedValue, reg.flatIndex());
                     
-                    // Use the scoreboard index to store the loaded value
-                    loadPredictedRegisters[index] = inst->loadPredictedValue;
-                    
                     if (is_int)
                     {
+                        // Use the scoreboard index to store the replaced value
+                        loadPredictedRegisters[index] = thread_context->readIntRegFlat(reg.flatIndex());
                         thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
                     } 
                     else if (is_float)
                     {
+                        loadPredictedRegisters[index] = thread_context->readFloatRegFlat(reg.flatIndex());
                         thread_context->setFloatRegFlat(reg.flatIndex(), inst->loadPredictedValue);
                     }
 
@@ -184,6 +192,42 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
             /* Use ZeroReg to mark invalid/untracked dests */
             inst->flatDestRegIdx[dest_index] = RegId(IntRegClass,
                                                      TheISA::ZeroReg);
+        }
+    }
+}
+
+void
+Scoreboard::validateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context)
+{
+    RegId reg = flattenRegIndex(
+        inst->staticInst->destRegIdx(0), thread_context);
+    Index index;
+
+    if (findIndex(reg, index)) {
+        DPRINTF(MinorLoadPredictor, "Validating the constant on inst %s \n", *inst);
+        //numResults[index]--;
+        auto reg_type = reg.classValue();
+        if (reg_type == IntRegClass)
+        {
+            thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
+        }
+    }
+}
+
+void
+Scoreboard::invalidateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context)
+{
+    RegId reg = flattenRegIndex(
+        inst->staticInst->destRegIdx(0), thread_context);
+    Index index;
+
+    if (findIndex(reg, index)) {
+        DPRINTF(MinorLoadPredictor, "Invalidating the constant on inst %s \n", *inst);
+        numResults[index]++;
+        auto reg_type = reg.classValue();
+        if (reg_type == IntRegClass)
+        {
+            thread_context->setIntRegFlat(reg.flatIndex(), loadPredictedRegisters[index]);
         }
     }
 }
@@ -244,7 +288,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
                 writingInst[index] = 0;
                 fuIndices[index] = -1;
             }
-
+            
             if (inst->staticInst->isLoad())
             {
                 /** ROBERT

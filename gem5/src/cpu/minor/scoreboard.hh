@@ -120,6 +120,10 @@ class Scoreboard : public Named
      *  must match mark_unpredictable for the same inst. */
     void clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable);
 
+    void validateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context);
+
+    void invalidateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context);
+
     /** Returns the exec sequence number of the most recent inst on
      *  which the given inst depends.  Useful for determining which
      *  inst must actually be committed before a dependent inst

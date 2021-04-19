@@ -402,13 +402,15 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                     default:
                         panic("Unhandled size in handleMemResponse.\n");
                 }
+                DPRINTF(MinorLoadPredictor, "Verifying prediction: pc: %#x, predicted value: %#x, correct value: %#x\n",
+                    inst->pc.instAddr(), inst->loadPredictedValue, mem);
                 load_predicted_correctly = 
                     cpu.loadValuePredictor->verifyPrediction(
                         thread_id,
                         inst->pc.instAddr(), 
-                        packet->getAddr(), 
+                        inst->effAddr, 
                         mem,
-                        inst->predictedTaken,
+                        inst->loadPredictedValue,
                         inst->loadPredicted);
 
                 
@@ -424,15 +426,6 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                 //     updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
                 // }
             }
-        }
-
-        /** ROBERT
-        * Now that the data address has been calculated, we should be 
-        * let the load value predictor know that we're going to store
-        * so that it can update the CVU and affect subsequent loads. */
-        if (inst->staticInst->isStore() && packet->hasRespData())
-        {
-            cpu.loadValuePredictor->processStoreAddress(thread->threadId(), response->packet->getAddr());
         }
 
         /* Complete the memory access instruction */
@@ -526,16 +519,40 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
 
         DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
 
-        if (inst->staticInst->isLoad())
+        if (false & inst->staticInst->isLoad() && inst->loadPredicted == LVP_CONSTANT)
         {
-            if (inst->loadPredicted == LVP_CONSTANT)
+            if (cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr()))
             {
-                cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.pc());
+                // This is a valid constant load, don't need to do anything
+                DPRINTF(MinorLoadPredictor, "Could skip instruction %s memory reference\n", 
+                    *inst);
+                scoreboard[inst->id.threadId].validateConstantLoad(inst, thread);
+            }
+            else{
+                // With CVU check, the constant needs to be invalidated and rewind in the scoreboard
+                // scoreboard[inst->id.threadId].invalidateConstantLoad(inst, thread);
             }
         }
 
+        auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
+                                            && inst->loadPredicted == LVP_CONSTANT 
+                                            && cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr());
+        inst->executedAsConstant = canExecuteAsConstantLoad;
+        if (canExecuteAsConstantLoad){
+            DPRINTF(MinorLoadPredictor, "Found instruction %s that can execute as constant\n", *inst);
+            thread->pcState(old_pc);
+            return true;
+        }
         Fault init_fault = inst->staticInst->initiateAcc(&context,
-            inst->traceData);
+                inst->traceData);
+
+        if (inst->staticInst->isStore() && inst->effAddrValid)
+        {
+            cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
+        } else if (inst->staticInst->isStore() && !inst->effAddrValid)
+        {
+            panic("Vaddr not available for a store inst\n");
+        }
 
         if (inst->inLSQ) {
             if (init_fault != NoFault) {
@@ -1220,7 +1237,11 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
                 lsq.popResponse(mem_response);
             } else {
-                handleMemResponse(inst, mem_response, branch, fault);
+                if (!inst->executedAsConstant) {
+                    handleMemResponse(inst, mem_response, branch, fault);
+                } else {
+                    scoreboard[thread_id].validateConstantLoad(inst, cpu.threads[thread_id]);
+                }
                 committed_inst = true;
             }
 
