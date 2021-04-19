@@ -191,6 +191,9 @@ class MinorDynInst : public RefCounted
 
     uint64_t loadPredictedValue;
 
+    /** Indicates that the processor executed this as a constant load, bypassing memory system */
+    bool executedAsConstant = false;
+
     /** Stores the virtual address of the instruction */
     Addr effAddr;
 
