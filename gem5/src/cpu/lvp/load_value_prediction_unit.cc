@@ -41,7 +41,7 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 
     if(lctResult == LVP_CONSTANT)
     {
-        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
+        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %#x\n", 
             tid, inst_addr, lvptResult);
     }
 
