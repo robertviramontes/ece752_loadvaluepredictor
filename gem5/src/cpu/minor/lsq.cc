@@ -1186,9 +1186,6 @@ LSQ::tryToSend(LSQRequestPtr request)
 
         DPRINTF(MinorMem, "Trying to send request: %s addr: 0x%x\n",
             *(request->inst), packet->req->getVaddr());
-        
-        (*request->inst).effAddr = packet->req->getVaddr();
-        (*request->inst).effAddrValid = packet->req->hasVaddr();
 
         /* The sender state of the packet *must* be an LSQRequest
          *  so the response can be correctly handled */
@@ -1656,6 +1653,12 @@ LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
     requests.push(request);
     inst->inLSQ = true;
     request->startAddrTranslation();
+
+    if (request->request->hasVaddr())
+    {
+        inst->effAddrValid = request->request->hasVaddr();
+        inst->effAddr = request->request->getVaddr();
+    }
 
     return inst->translationFault;
 }
