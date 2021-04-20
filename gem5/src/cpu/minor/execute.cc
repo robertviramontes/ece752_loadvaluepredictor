@@ -519,20 +519,16 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
 
         DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
 
-        if (false & inst->staticInst->isLoad() && inst->loadPredicted == LVP_CONSTANT)
-        {
-            if (cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr()))
-            {
-                // This is a valid constant load, don't need to do anything
-                DPRINTF(MinorLoadPredictor, "Could skip instruction %s memory reference\n", 
-                    *inst);
-                scoreboard[inst->id.threadId].validateConstantLoad(inst, thread);
-            }
-            else{
-                // With CVU check, the constant needs to be invalidated and rewind in the scoreboard
-                // scoreboard[inst->id.threadId].invalidateConstantLoad(inst, thread);
-            }
-        }
+        // if (false & inst->staticInst->isLoad() && inst->loadPredicted == LVP_CONSTANT)
+        // {
+        //     if (cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr()))
+        //     {
+        //         // This is a valid constant load, don't need to do anything
+        //         DPRINTF(MinorLoadPredictor, "Could skip instruction %s memory reference\n", 
+        //             *inst);
+        //         scoreboard[inst->id.threadId].validateConstantLoad(inst, thread);
+        //     }
+        // }
 
         auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
                                             && inst->loadPredicted == LVP_CONSTANT 
@@ -1167,6 +1163,9 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             ex_info.lastCommitWasEndOfMacroop);
     }
 
+    if (!ex_info.inFlightInsts->empty())
+        DPRINTF(MinorLoadPredictor, "Instruction at the head is %s\n", *(ex_info.inFlightInsts->front().inst));
+
     while (!ex_info.inFlightInsts->empty() && /* Some more instructions to process */
         !branch.isStreamChange() && /* No real branch */
         fault == NoFault && /* No faults */
@@ -1219,6 +1218,12 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             /* Branch as there was a change in PC */
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
                 MinorDynInst::bubble(), thread->pcState(), branch);
+        } else if (inst->executedAsConstant){
+            DPRINTF(MinorLoadPredictor, "Commit inst as constant\n");
+            scoreboard[thread_id].clearInstDests(inst, inst->isMemRef());
+            scoreboard[thread_id].validateConstantLoad(inst, cpu.getContext(thread_id));
+            ex_info.inFlightInsts->pop();
+            doInstCommitAccounting(inst);
         } else if (mem_response &&
             num_mem_refs_committed < memoryCommitLimit)
         {
@@ -1237,11 +1242,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
                 lsq.popResponse(mem_response);
             } else {
-                if (!inst->executedAsConstant) {
-                    handleMemResponse(inst, mem_response, branch, fault);
-                } else {
-                    scoreboard[thread_id].validateConstantLoad(inst, cpu.threads[thread_id]);
-                }
+                handleMemResponse(inst, mem_response, branch, fault);
                 committed_inst = true;
             }
 
