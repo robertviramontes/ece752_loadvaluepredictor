@@ -617,6 +617,13 @@ LSQUnit<Impl>::executeLoad(const DynInstPtr &inst)
 
     assert(!inst->isSquashed());
 
+    if(inst->isConstPredictionCorrect() && !inst->strictlyOrdered() && !inst->isInstPrefetch()) {
+        DPRINTF(LSQUnit, "Load PC %s was correctly predicted as constant sn:%llu", inst->pcState(), inst->seqNum);
+        inst->setExecuted();
+        iewStage->instToCommit(inst);
+        iewStage->activityThisCycle();
+        return NoFault;
+    }
     load_fault = inst->initiateAcc();
 
     if (load_fault == NoFault && !inst->readMemAccPredicate()) {

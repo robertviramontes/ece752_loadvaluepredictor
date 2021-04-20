@@ -57,6 +57,7 @@
 #include "debug/Activity.hh"
 #include "debug/Drain.hh"
 #include "debug/IEW.hh"
+#include "debug/LVP.hh"
 #include "debug/O3PipeView.hh"
 #include "params/DerivO3CPU.hh"
 
@@ -969,6 +970,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         skidBuffer[tid] : insts[tid];
 
     int insts_to_add = insts_to_dispatch.size();
+    DPRINTF(IEW, "Insts to dispatch: %d\n", insts_to_add);
 
     DynInstPtr inst;
     bool add_to_iq = false;
@@ -1145,27 +1147,41 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                     // Write the predicted value to the allocated register and
                     // forward all values 
                     // Mark this load as executed and ready to commit.
+                    //toRename->iewInfo[tid].dispatchedToLQ++;
+                    //toRename->iewInfo[tid].dispatched++;
+                    //insts_to_dispatch.pop();
+                    //inst->setIssued();
+                    //inst->setExecuted();
+                    //inst->setCanCommit();
+                    //inst->setResultReady();
+                    //instToCommit(inst);
+                    //activityThisCycle();
+                    //add_to_iq = false;
+                    DPRINTF(LVP, "IEW: Const load [sn: %d] found by LVP: 0x%x\n", inst->seqNum, inst->instAddr());
+                    ldstQueue.insertLoad(inst);
+
+                    ++iewDispLoadInsts;
+
+                    add_to_iq = true;
+
                     toRename->iewInfo[tid].dispatchedToLQ++;
-                    toRename->iewInfo[tid].dispatched++;
-                    insts_to_dispatch.pop();
-                    inst->setIssued();
-                    inst->setExecuted();
-                    inst->setCanCommit();
-                    add_to_iq = false;
 
                     // Pass the load value to the destination register
-                    if(inst->numDestRegs() == 1) {
+                    /*if(inst->numDestRegs() == 1) {
+                        auto ptr = inst->renamedDestRegIdx(0);
                         if(inst->isInteger()) {
                             inst->setIntRegOperand(inst->staticInst.get(), 
                                                    0, prediction.second);
-                            instQueue.wakeDependents(inst);
+                            //instQueue.wakeDependents(inst);
                             scoreboard->setReg(inst->renamedDestRegIdx(0));
+                            //DPRINTF(LVP, "LVP Const Inst[%llu]: ox%x getting reg %d as ready: %d\n", inst->seqNum, inst->instAddr(), ptr->index(), scoreboard->getReg(ptr));
                         }
                         else if(inst->isFloating()) {
                             inst->setFloatRegOperandBits(inst->staticInst.get(), 
                                                    0, prediction.second);
-                            instQueue.wakeDependents(inst);
+                            //instQueue.wakeDependents(inst);
                             scoreboard->setReg(inst->renamedDestRegIdx(0));
+                            //DPRINTF(LVP, "LVP Const Inst[%llu]: ox%x getting reg %d as ready: %d\n", inst->seqNum, inst->instAddr(), ptr->index(), scoreboard->getReg(ptr));
                         }
                         else {
                             // This isn't supposed to happen
@@ -1175,6 +1191,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
                         // This isn't supposed to happen (except maybe for
                         // vectors)
                     }
+                    */
                 }
             }
             else if(prediction.first == LVP_PREDICTABLE) {
@@ -1461,7 +1478,6 @@ DefaultIEW<Impl>::executeInsts()
                 /**
                  * SATVIK:
                  * Check the LVP prediction here
-                 */
                 if(inst->isExecuted() && fault == NoFault) {
                     if (inst->numDestRegs() == 1) {
                         bool verify = inst->verifyPrediction(0);
@@ -1476,6 +1492,7 @@ DefaultIEW<Impl>::executeInsts()
                         // This shouldn't happen
                     }
                 }
+                 */
 
             } else if (inst->isStore()) {
                 fault = ldstQueue.executeStore(inst);
@@ -1669,6 +1686,40 @@ DefaultIEW<Impl>::writebackInsts()
         // are first sent to commit.  Instead commit must tell the LSQ
         // when it's ready to execute the strictly ordered load.
         if (!inst->isSquashed() && inst->isExecuted() && inst->getFault() == NoFault) {
+            if(inst->isLoad()) {
+                if(inst->isConstPredictionCorrect() && !inst->strictlyOrdered() && !inst->isInstPrefetch()) {
+                    // Pass the load value to the destination register
+                    //inst->setCanCommit();
+                    if(inst->numDestRegs() == 1) {
+                        auto ptr = inst->renamedDestRegIdx(0);
+                        if(ptr->isIntPhysReg()) {
+                            inst->setIntRegOperand(inst->staticInst.get(), 
+                                                   0, inst->getPredictedValue());
+                            //instQueue.wakeDependents(inst);
+                            scoreboard->setReg(ptr);
+                            DPRINTF(LVP, "LVP Const Inst[%llu]: ox%x setting reg %d as ready\n", inst->seqNum, inst->instAddr(), ptr->index());
+                        }
+                        else if(ptr->isFloatPhysReg()) {
+                            inst->setFloatRegOperandBits(inst->staticInst.get(), 
+                                                   0, inst->getPredictedValue());
+                            //instQueue.wakeDependents(inst);
+                            scoreboard->setReg(inst->renamedDestRegIdx(0));
+                            DPRINTF(LVP, "LVP Const Inst[%llu]: ox%x setting reg %d as ready\n", inst->seqNum, inst->instAddr(), ptr->index());
+                        }
+                        else {
+                            // This isn't supposed to happen
+                        }
+                    }
+                    else {
+                        // This isn't supposed to happen (except maybe for
+                        // vectors)
+                    }
+                }
+                else {
+                    if(inst->numDestRegs() == 1)
+                        inst->verifyPrediction(0);
+                }
+            }
             int dependents = instQueue.wakeDependents(inst);
 
             for (int i = 0; i < inst->numDestRegs(); i++) {

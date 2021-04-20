@@ -107,6 +107,9 @@ BaseO3DynInst<Impl>::initVars()
     _numDestMiscRegs = 0;
 
     _classification = LVP_STRONG_UNPREDICTABLE;
+    _predictedVal = 0;
+    _predictionCorrect = false;
+    _specExecOnLoad = false;
 
 #if TRACING_ON
     // Value -1 indicates that particular phase

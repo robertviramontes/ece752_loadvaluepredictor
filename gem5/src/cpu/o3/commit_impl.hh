@@ -706,6 +706,9 @@ DefaultCommit<Impl>::tick()
             DPRINTF(Commit,"[tid:%i] Instruction [sn:%llu] PC %s is head of"
                     " ROB and ready to commit\n",
                     tid, inst->seqNum, inst->pcState());
+            if(inst->isLoad()) {
+                DPRINTF(Commit, "Inst ready to commit is a load:[sn:%llu]\n", inst->seqNum);
+            }
 
         } else if (!rob->isEmpty(tid)) {
             const DynInstPtr &inst = rob->readHeadInst(tid);
@@ -715,6 +718,18 @@ DefaultCommit<Impl>::tick()
             DPRINTF(Commit,"[tid:%i] Can't commit, Instruction [sn:%llu] PC "
                     "%s is head of ROB and not ready\n",
                     tid, inst->seqNum, inst->pcState());
+            for(int i = 0; i < inst->numSrcRegs(); i++) {
+                if(!inst->isReadySrcRegIdx(i)) {
+                    auto ptr = inst->renamedSrcRegIdx(i);
+                    DPRINTF(Commit, "Src reg %d for inst[%llu]: 0x%x not ready\n", ptr->index(),inst->seqNum, inst->instAddr());
+                }
+            }
+            if(inst->isConstPredictionCorrect() && !inst->readyToCommit()) {
+                DPRINTF(Commit, "Head instruction[%d] wasn't ready in ROB and was a const load\n", inst->seqNum);
+                //inst->setExecuted();
+                //inst->setResultReady();
+                //inst->setCanCommit();
+            }
         }
 
         DPRINTF(Commit, "[tid:%i] ROB has %d insts & %d free entries.\n",

@@ -124,6 +124,8 @@ class BaseO3DynInst : public BaseDynInst<Impl>
 
     RegVal _predictedVal;
 
+    bool _predictionCorrect;
+
     bool _specExecOnLoad;
 
   public:
@@ -446,9 +448,20 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     verifyConstLoad(ThreadID tid) {
         Addr lvpt_index = this->cpu->lvp->lookupLVPTIndex(tid, 
                                                           this->instAddr());
-        return this->cpu->lvp->processLoadAddress(tid,
+        _predictionCorrect = this->cpu->lvp->processLoadAddress(tid,
                                                   this->instAddr(), lvpt_index);
+        return _predictionCorrect;
     } 
+
+    bool
+    isConstPredictionCorrect() {
+        return _predictionCorrect;
+    }
+
+    RegVal
+    getPredictedValue() {
+        return _predictedVal;
+    }
 
     void
     tagLVPDestReg(int idx) {
@@ -488,15 +501,16 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     bool 
     verifyPrediction(int idx) {
         RegVal temp = 0;
-        if(this->isInteger()) {
-            temp = this->cpu->readIntReg(_destRegIdx[idx]);
+        auto ptr = this->_destRegIdx[idx];
+        if(ptr->isIntPhysReg()) {
+            temp = this->cpu->readIntReg(ptr);
         }
-        else if(this->isFloating()) {
-            temp = this->cpu->readFloatReg(_destRegIdx[idx]);
+        else if(ptr->isFloatPhysReg()) {
+            temp = this->cpu->readFloatReg(ptr);
         }
-        //else {
-        //    return true;
-        //}
+        else {
+           return true;
+        }
         this->removeLVPTag(idx);
         if(!this->effAddrValid()) panic("Virtual address not valid yet");
         return this->cpu->lvp->verifyPrediction(this->threadNumber, 
