@@ -530,6 +530,21 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         //     }
         // }
 
+        Fault init_fault = NoFault;
+        if(!inst->staticInst->isLoad()) {
+            init_fault = inst->staticInst->initiateAcc(&context,
+                    inst->traceData);
+        }
+
+        if (inst->staticInst->isStore() && inst->effAddrValid)
+        {
+            cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
+        } else if (inst->staticInst->isStore() && !inst->effAddrValid)
+        {
+            panic("Vaddr not available for a store inst\n");
+        }
+
+
         auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
                                             && inst->loadPredicted == LVP_CONSTANT 
                                             && cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr());
@@ -539,15 +554,9 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
             thread->pcState(old_pc);
             return true;
         }
-        Fault init_fault = inst->staticInst->initiateAcc(&context,
-                inst->traceData);
-
-        if (inst->staticInst->isStore() && inst->effAddrValid)
-        {
-            cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
-        } else if (inst->staticInst->isStore() && !inst->effAddrValid)
-        {
-            panic("Vaddr not available for a store inst\n");
+        else if(inst->staticInst->isLoad()) {
+            init_fault = inst->staticInst->initiateAcc(&context,
+                    inst->traceData);
         }
 
         if (inst->inLSQ) {
@@ -669,12 +678,18 @@ Execute::issue(ThreadID thread_id)
 
             issued = true;
             discarded = true;
+            if(inst->loadPredicted == LVP_CONSTANT) {
+                DPRINTF(MinorExecute, "Constant load PC: 0x%x being discarded\n", inst->pc.instAddr());
+            }
         } else if (inst->id.streamSeqNum != thread.streamSeqNum) {
             DPRINTF(MinorExecute, "Discarding inst: %s as its stream"
                 " state was unexpected, expected: %d\n",
                 *inst, thread.streamSeqNum);
             issued = true;
             discarded = true;
+            if(inst->loadPredicted == LVP_CONSTANT) {
+                DPRINTF(MinorExecute, "Constant load PC: 0x%x being discarded\n", inst->pc.instAddr());
+            }
         } else {
             /* Try and issue an instruction into an FU, assume we didn't and
              * fix that in the loop */
