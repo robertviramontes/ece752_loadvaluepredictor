@@ -1,0 +1,15 @@
+Command line:
+./run_gem5_x86_spec06_benchmark.sh namd namd_VC_DSR_O3CPU_squashed_load_analysis
+================= Hardcoded directories ==================
+GEM5_DIR:                                     /nobackup/amittal/DEFAULT
+SPEC_DIR:                                     /p/prometheus/private/adarsh1/spec2006_apps
+==================== Script inputs =======================
+BENCHMARK:                                    namd
+OUTPUT_DIR:                                   /u/v/b/vbaoni/prajyotg/golden_benchmarks/namd
+==========================================================
+Changing to SPEC benchmark runtime directory:     /p/prometheus/private/adarsh1/spec2006_apps/namd/run/run_base_ref_i386-m32-gcc42-nn.0000
+
+
+--------- Here goes nothing! Starting gem5! ------------
+
+

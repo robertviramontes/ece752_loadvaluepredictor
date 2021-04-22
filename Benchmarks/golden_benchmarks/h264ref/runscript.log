@@ -1,0 +1,15 @@
+Command line:
+./run_gem5_x86_spec06_benchmark.sh h264ref h264ref_VC_DSR_O3CPU_squashed_load_analysis
+================= Hardcoded directories ==================
+GEM5_DIR:                                     /nobackup/amittal/DEFAULT
+SPEC_DIR:                                     /p/prometheus/private/adarsh1/spec2006_apps
+==================== Script inputs =======================
+BENCHMARK:                                    h264ref
+OUTPUT_DIR:                                   /u/v/b/vbaoni/prajyotg/golden_benchmarks/h264ref
+==========================================================
+Changing to SPEC benchmark runtime directory:     /p/prometheus/private/adarsh1/spec2006_apps/h264ref/run/run_base_ref_i386-m32-gcc42-nn.0000
+
+
+--------- Here goes nothing! Starting gem5! ------------
+
+
