@@ -275,7 +275,7 @@ class MinorCPU(BaseCPU):
     executeSetTraceTimeOnIssue = Param.Bool(False,
         "Set inst. trace times to be issue times")
 
-    executeAllowEarlyMemoryIssue = Param.Bool(True,
+    executeAllowEarlyMemoryIssue = Param.Bool(False,
         "Allow mem refs to be issued to the LSQ before reaching the head of"
         " the in flight insts queue")
 
