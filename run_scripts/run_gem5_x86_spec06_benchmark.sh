@@ -16,16 +16,16 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
         echo ""
         echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
         echo ""
-        echo "USAGE: run_gem5_alpha_spec06_benchmark.sh <BENCHMARK> <OUTPUT_DIR>"
-        echo "EXAMPLE: ./run_gem5_alpha_spec06_benchmark.sh bzip2 /FULL/PATH/TO/output_dir"
-        echo ""
+        echo "USAGE: run_gem5_alpha_spec06_benchmark.sh <BENCHMARK> <CHECKPOINT_DIR>"
+        echo "EXAMPLE: ./run_gem5_x86_spec06_benchmark.sh astar astar_VC_DSR_O3CPU_squashed_load_analysis"
+        echo "The name of the checkpoint directory is taken from /p/prometheus/private/adarsh1/checkpoints/checkpoint_* "
         echo "A single --help help or -h argument will bring this message back."
         exit
 fi
 
 # Get command line input. We will need to check these.
 BENCHMARK=$1                                    # Benchmark name, e.g. bzip2
-#OUTPUT_DIR=$2                                   # Directory to place run output. Make sure this exists!
+#prajyotg :: OUTPUT_DIR=$2                                   # Directory to place run output. Make sure this exists!
 OUTPUT_DIR=/u/v/b/vbaoni/prajyotg/benchmarks_w_lvp/"$BENCHMARK"  # Directory to place run output. Make sure this exists!
 CHECKPOINT_DIR=$2
 ######################### BENCHMARK CODENAMES ####################
