@@ -210,6 +210,8 @@ Scoreboard::validateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_co
         if (reg_type == IntRegClass)
         {
             thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
+        } else if (reg_type == FloatRegClass) {
+            thread_context->setFloatRegFlat(reg.flatIndex(), inst->loadPredictedValue);
         }
     }
 }
