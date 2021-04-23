@@ -1126,7 +1126,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
 
             if(prediction.first == LVP_CONSTANT) {
                 // Trigger a CVU lookup of the lvpt index and the load address
-                bool const_valid = inst->verifyConstLoad(tid);
+                bool const_valid = false; //inst->verifyConstLoad(tid);
                 if (!const_valid) {
                     // This prediction failed
                     // The CVU will have already incremented the misprediction
@@ -1459,6 +1459,9 @@ DefaultIEW<Impl>::executeInsts()
             } else if (inst->isLoad()) {
                 // Loads will mark themselves as executed, and their writeback
                 // event adds the instruction to the queue to commit
+                if(inst->isConstLoad())
+                    inst->verifyConstLoad(inst->threadNumber);
+
                 fault = ldstQueue.executeLoad(inst);
 
                 if (inst->isTranslationDelayed() &&

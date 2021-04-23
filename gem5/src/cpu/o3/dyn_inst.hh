@@ -463,6 +463,10 @@ class BaseO3DynInst : public BaseDynInst<Impl>
         return _predictedVal;
     }
 
+    bool isConstLoad() {
+        return _classification == LVP_CONSTANT;
+    }
+
     void
     tagLVPDestReg(int idx) {
         this->cpu->tagLVPDestReg(this->_destRegIdx[idx]);
