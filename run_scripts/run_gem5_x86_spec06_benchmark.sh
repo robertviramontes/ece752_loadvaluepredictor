@@ -2,13 +2,13 @@
 
 ############ DIRECTORY VARIABLES: MODIFY ACCORDINGLY #############
 ##GEM5_DIR=/nobackup/amittal/DEFAULT
-GEM5_DIR=/u/v/b/vbaoni/prajyotg/ece752_loadvaluepredictor/gem5
+GEM5_DIR=$PWD/../gem5
 SPEC_DIR=/p/prometheus/private/adarsh1/spec2006_apps                                    # Install location of your SPEC2006 benchmarks
 ##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
 ##prajyotg :: if [[ "$ARGC" != 3 ]]; then # Bad number of arguments.
-if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
+if [[ "$ARGC" < 1 ]]; then # Bad number of arguments.
         echo "run_gem5_spec06_benchmark.sh  Copyright (C) 2014 Mark Gottscho"
    echo ""
         echo "Author: Prajyot Gupta"
@@ -26,8 +26,10 @@ fi
 # Get command line input. We will need to check these.
 BENCHMARK=$1                                    # Benchmark name, e.g. bzip2
 #prajyotg :: OUTPUT_DIR=$2                                   # Directory to place run output. Make sure this exists!
-OUTPUT_DIR=/u/v/b/vbaoni/prajyotg/benchmarks_w_lvp/"$BENCHMARK"  # Directory to place run output. Make sure this exists!
-CHECKPOINT_DIR=$2
+#OUTPUT_DIR=/u/v/b/vbaoni/prajyotg/benchmarks_w_lvp/"$BENCHMARK"  # Directory to place run output. Make sure this exists!
+OUTPUT_DIR=$PWD/benchmarks_w_lvp/"$BENCHMARK"  # Directory to place run output. Make sure this exists!
+#CHECKPOINT_DIR=$2
+ARGS=$2
 ######################### BENCHMARK CODENAMES ####################
 
 
@@ -155,7 +157,7 @@ fi
 if [[ "$BENCHMARK" == "xalancbmk" ]]; then # DOES NOT WORK
         BENCHMARK_CODE=$XALANCBMK_CODE
 fi
-if [[ "$BENCHMARK" == "specrand_i" ]]; then
+if [[ "$BENCHMARK" == "specrand" ]]; then
         BENCHMARK_CODE=$SPECRAND_INT_CODE
 fi
 if [[ "$BENCHMARK" == "specrand_f" ]]; then
@@ -213,7 +215,10 @@ echo "" | tee -a $SCRIPT_OUT
 #//FULL_SCRIPT=GEM5_PATH+"/build/"+PROTOCOL+"/"+BINARY+" --remote-gdb-port=0 "+GEM5_PATH+"/configs/example/fs.py --cpu-type=atomic --kernel="+GEM5_PATH+"/dist/m5/system/binaries/"+KERNEL+" --mem-size="+MEM_SIZE+" --mem-type=SimpleMemory --cacheline_size=64 --l1i_assoc=8 --l1d_assoc=8 --num-cpus="+str(NUM_CORES)+" --l1i_size="+L1_SIZE+" --l1d_size="+L1_SIZE+" --l2_assoc=16 --l2_size=" + L2_SIZE + CHCKPT_CREATE + RUN_SCRIPT 
 #//'''
 
-$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR  $GEM5_DIR/configs/example/se.py --restore-with-cpu=AtomicSimpleCPU -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn  --checkpoint-dir=/p/prometheus/private/adarsh1/checkpoints/checkpoint_$CHECKPOINT_DIR --caches --l2cache --cpu-type=DerivO3CPU  -I 10000000  --mem-size=16GB --checkpoint-restore=1 --mem-type=DDR3_2133_8x8  --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz
+$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR $GEM5_DIR/configs/example/se.py -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn --options="$ARGS" --caches --l2cache --cpu-type=DerivO3CPU --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz -I 20000000
+#$GEM5_DIR/build/X86/gem5.opt --debug-flags=Fetch,IEW,Commit,LVP,Rename --outdir=$OUTPUT_DIR $GEM5_DIR/configs/example/se.py -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn --options="$ARGS" --caches --l2cache --cpu-type=DerivO3CPU --mem-size=16GB --mem-type=DDR3_2133_8x8 --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz -F 100000 -I 20000000
+#$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR --debug-flags=CVU $GEM5_DIR/configs/example/se.py -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn --caches --l2cache --cpu-type=DerivO3CPU  -I 10000000 --mem-type=DDR3_2133_8x8  --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz -F 10000000
+#$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR  $GEM5_DIR/configs/example/se.py --restore-with-cpu=AtomicSimpleCPU -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn  --checkpoint-dir=/p/prometheus/private/adarsh1/checkpoints/checkpoint_$CHECKPOINT_DIR --caches --l2cache --cpu-type=DerivO3CPU  -I 10000000 --checkpoint-restore=1 --mem-size=16GB --mem-type=DDR3_2133_8x8  --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz
 
 
 #$GEM5_DIR/build/X86/gem5.opt --outdir=$OUTPUT_DIR  $GEM5_DIR/configs/example/se.py --restore-simpoint-checkpoint -r 1 --checkpoint-dir /p/prometheus/private/adarsh1/simpoints//462.libquantum/x86-/ --restore-with-cpu=AtomicSimpleCPU -c /p/prometheus/private/adarsh1/spec2006_apps/${BENCHMARK}_base.i386-m32-gcc42-nn --caches --l2cache --cpu-type=DerivO3CPU  --mem-size=16GB --mem-type=DDR3_2133_8x8  --l1d_size=32kB  --l1i_size=32kB  --l2_size=256kB  --l3_size=8MB  --l1d_assoc=8 --l1i_assoc=8 --l2_assoc=8 --l3_assoc=16 --cpu-clock=3.6GHz
