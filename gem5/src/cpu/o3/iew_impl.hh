@@ -1459,7 +1459,7 @@ DefaultIEW<Impl>::executeInsts()
             } else if (inst->isLoad()) {
                 // Loads will mark themselves as executed, and their writeback
                 // event adds the instruction to the queue to commit
-                if(inst->isConstLoad())
+                if(inst->isConstLoad() && !inst->strictlyOrdered() && !inst->isInstPrefetch())
                     inst->verifyConstLoad(inst->threadNumber);
 
                 fault = ldstQueue.executeLoad(inst);
@@ -1693,6 +1693,7 @@ DefaultIEW<Impl>::writebackInsts()
                 if(inst->isConstPredictionCorrect() && !inst->strictlyOrdered() && !inst->isInstPrefetch()) {
                     // Pass the load value to the destination register
                     //inst->setCanCommit();
+                    //checkMisprediction(inst);
                     if(inst->numDestRegs() == 1) {
                         auto ptr = inst->renamedDestRegIdx(0);
                         if(ptr->isIntPhysReg()) {

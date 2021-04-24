@@ -683,6 +683,19 @@ LSQUnit<Impl>::read(LSQRequest *req, int load_idx)
         load_inst->recordResult(true);
     }
 
+    // SATVIK
+    if(load_inst->isConstLoad() && load_inst->isConstPredictionCorrect()) {
+        // This is basically forwarding values from a local resource
+        // The data will be written during IEW WB
+        // Here, we just schedule the writeback event of the load
+        DPRINTF(LSQUnit, "Const load[%llu]: 0x%x scheduling a WB event\n", load_inst->seqNum, load_inst->instAddr());
+        load_inst->memData = new uint8_t[MaxDataBytes];
+        PacketPtr main_pkt = new Packet(req->mainRequest(), MemCmd::ReadReq);
+        main_pkt->dataStatic(load_inst->memData);
+        WritebackEvent *wb = new WritebackEvent(load_inst, main_pkt, this);
+        cpu->schedule(wb, curTick());
+        return NoFault;
+    }
     if (req->mainRequest()->isLocalAccess()) {
         assert(!load_inst->memData);
         assert(!load_inst->inHtmTransactionalState());

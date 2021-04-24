@@ -94,7 +94,7 @@ public:
 	 * @return     True if the load address, LVPT index pair exist in the CAM
 	 * 			   False otherwise
 	 */	
-	bool processLoadAddress(Addr pc, Addr lvptIndex, ThreadID tid);
+	bool processLoadAddress(Addr load_address, Addr lvptIndex, ThreadID tid);
 
 	/**
 	 * @brief      Inserts info of a new constant load into the CVU CAM

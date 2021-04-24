@@ -449,7 +449,7 @@ class BaseO3DynInst : public BaseDynInst<Impl>
         Addr lvpt_index = this->cpu->lvp->lookupLVPTIndex(tid, 
                                                           this->instAddr());
         _predictionCorrect = this->cpu->lvp->processLoadAddress(tid,
-                                                  this->instAddr(), lvpt_index);
+                                                  this->instAddr(), this->effAddr, lvpt_index);
         return _predictionCorrect;
     } 
 

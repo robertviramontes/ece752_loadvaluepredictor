@@ -67,9 +67,7 @@ class LoadValuePredictionUnit : public SimObject
 
     Addr lookupLVPTIndex(ThreadID tid, Addr pc);
 
-    bool processLoadAddress(ThreadID tid, Addr pc);
-
-    bool processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index);
+    bool processLoadAddress(ThreadID tid, Addr pc, Addr load_address, Addr lvpt_index);
 
     /** 
      * @brief Used to process a store to the store_address and update the CVU

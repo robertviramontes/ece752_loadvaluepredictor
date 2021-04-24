@@ -735,6 +735,12 @@ LSQ<Impl>::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
             inst->effSize = size;
             inst->effAddrValid(true);
 
+            //SATVIK
+            // CHeck the CVU CAM for this load
+            if(inst->isConstLoad()) {
+                inst->verifyConstLoad(0);
+            }
+
             if (cpu->checker) {
                 inst->reqToVerify = std::make_shared<Request>(*req->request());
             }
