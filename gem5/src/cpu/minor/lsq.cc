@@ -49,6 +49,7 @@
 #include "cpu/utils.hh"
 #include "debug/Activity.hh"
 #include "debug/MinorMem.hh"
+#include "debug/MinorLoadPredictor.hh"
 
 namespace Minor
 {
@@ -960,7 +961,7 @@ LSQ::StoreBuffer::minorTrace() const
 
 void
 LSQ::tryToSendToTransfers(LSQRequestPtr request)
-{
+{  
     if (state == MemoryNeedsRetry) {
         DPRINTF(MinorMem, "Request needs retry, not issuing to"
             " memory until retry arrives\n");
@@ -1164,6 +1165,15 @@ LSQ::tryToSendToTransfers(LSQRequestPtr request)
             request->issuedToMemory = true;
         }
 
+        // deal with LVP stuff
+        request->inst->executedAsConstant = request->inst->staticInst->isLoad() 
+            && request->inst->loadPredicted == LVP_CONSTANT 
+            && cpu.loadValuePredictor->processLoadAddress(request->inst->id.threadId, request->inst->pc.instAddr(), request->request->getVaddr());
+        
+        if(request->inst->executedAsConstant) {
+            DPRINTF(MinorLoadPredictor, "Found instruction %s that can execute as constant\n", *request->inst);
+        }
+
         if (tryToSend(request)) {
             moveFromRequestsToTransfers(request);
         }
@@ -1191,7 +1201,28 @@ LSQ::tryToSend(LSQRequestPtr request)
          *  so the response can be correctly handled */
         assert(packet->findNextSenderState<LSQRequest>());
 
-        if (request->request->isLocalAccess()) {
+        if(request->inst->executedAsConstant) {
+            ThreadContext *thread =
+                cpu.getContext(cpu.contextToThread(
+                                request->request->contextId()));
+
+            packet->setData((uint8_t *)&request->inst->loadPredictedValue);
+
+            DPRINTF(MinorLoadPredictor, "Forwarded values on constant load %s.\n", *request->inst);
+
+            request->stepToNextPacket();
+            ret = request->sentAllPackets();
+
+            if (!ret) {
+                DPRINTF(MinorLoadPredictor, "Constant load access has another packet: %s\n",
+                    *(request->inst));
+            }
+
+            if (ret)
+                request->setState(LSQRequest::Complete);
+            else
+                request->setState(LSQRequest::RequestIssuing);
+        } else if (request->request->isLocalAccess()) {
             ThreadContext *thread =
                 cpu.getContext(cpu.contextToThread(
                                 request->request->contextId()));
@@ -1659,6 +1690,12 @@ LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
         inst->effAddrValid = request->request->hasVaddr();
         inst->effAddr = request->request->getVaddr();
     }
+
+    if (inst->staticInst->isStore() && inst->effAddrValid) {
+        DPRINTF(MinorLoadPredictor, "Processing a store to CVU.\n");
+        cpu.loadValuePredictor->processStoreAddress(request->inst->id.threadId, request->inst->effAddr);
+    }
+
 
     return inst->translationFault;
 }

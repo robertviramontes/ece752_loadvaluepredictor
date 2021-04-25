@@ -402,8 +402,8 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                     default:
                         panic("Unhandled size in handleMemResponse.\n");
                 }
-                DPRINTF(MinorLoadPredictor, "Verifying prediction: pc: %#x, predicted value: %#x, correct value: %#x\n",
-                    inst->pc.instAddr(), inst->loadPredictedValue, mem);
+                // DPRINTF(MinorLoadPredictor, "Verifying prediction: pc: %#x, predicted value: %#x, correct value: %#x\n",
+                //     inst->pc.instAddr(), inst->loadPredictedValue, mem);
                 load_predicted_correctly = 
                     cpu.loadValuePredictor->verifyPrediction(
                         thread_id,
@@ -531,33 +531,30 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         // }
 
         Fault init_fault = NoFault;
-        if(!inst->staticInst->isLoad()) {
+
+        // if (inst->staticInst->isStore() && inst->effAddrValid)
+        // {
+        //     cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
+        // } else if (inst->staticInst->isStore() && !inst->effAddrValid)
+        // {
+        //     panic("Vaddr not available for a store inst\n");
+        // }
+
+
+        // auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
+        //                                     && inst->loadPredicted == LVP_CONSTANT 
+        //                                     && cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr())
+        //                                     && inst->flatDestRegIdx->classValue() == IntRegClass;
+        // inst->executedAsConstant = canExecuteAsConstantLoad;
+        // if (canExecuteAsConstantLoad){
+        //     DPRINTF(MinorLoadPredictor, "Found instruction %s that can execute as constant\n", *inst);
+        //     // thread->pcState(old_pc);
+        //     // return true;
+        // }
+        // else if(inst->staticInst->isLoad()) {
             init_fault = inst->staticInst->initiateAcc(&context,
                     inst->traceData);
-        }
-
-        if (inst->staticInst->isStore() && inst->effAddrValid)
-        {
-            cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
-        } else if (inst->staticInst->isStore() && !inst->effAddrValid)
-        {
-            panic("Vaddr not available for a store inst\n");
-        }
-
-
-        auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
-                                            && inst->loadPredicted == LVP_CONSTANT 
-                                            && cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr());
-        inst->executedAsConstant = canExecuteAsConstantLoad;
-        if (canExecuteAsConstantLoad){
-            DPRINTF(MinorLoadPredictor, "Found instruction %s that can execute as constant\n", *inst);
-            thread->pcState(old_pc);
-            return true;
-        }
-        else if(inst->staticInst->isLoad()) {
-            init_fault = inst->staticInst->initiateAcc(&context,
-                    inst->traceData);
-        }
+        // }
 
         if (inst->inLSQ) {
             if (init_fault != NoFault) {
@@ -749,8 +746,8 @@ Execute::issue(ThreadID thread_id)
                     }
                 } else if (fu->stalled) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s into FU: %d,"
-                        " it's stalled\n",
-                        *inst, fu_index);
+                        " it's stalled on inst %s \n",
+                        *inst, fu_index, *fu->front().inst);
                 } else if (!fu->canInsert()) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s to busy FU"
                         " for another: %d cycles\n",
@@ -1178,9 +1175,6 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             ex_info.lastCommitWasEndOfMacroop);
     }
 
-    if (!ex_info.inFlightInsts->empty())
-        DPRINTF(MinorLoadPredictor, "Instruction at the head is %s\n", *(ex_info.inFlightInsts->front().inst));
-
     while (!ex_info.inFlightInsts->empty() && /* Some more instructions to process */
         !branch.isStreamChange() && /* No real branch */
         fault == NoFault && /* No faults */
@@ -1233,12 +1227,33 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             /* Branch as there was a change in PC */
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
                 MinorDynInst::bubble(), thread->pcState(), branch);
-        } else if (inst->executedAsConstant){
-            DPRINTF(MinorLoadPredictor, "Commit inst as constant\n");
-            scoreboard[thread_id].clearInstDests(inst, inst->isMemRef());
-            scoreboard[thread_id].validateConstantLoad(inst, cpu.getContext(thread_id));
-            ex_info.inFlightInsts->pop();
-            doInstCommitAccounting(inst);
+        } else if (false && inst->executedAsConstant &&
+            num_mem_refs_committed < memoryCommitLimit){
+            discard_inst = inst->id.streamSeqNum !=
+                           ex_info.streamSeqNum || discard;
+
+            DPRINTF(MinorLoadPredictor,"in lsq: %d, fuindex: %d\n", inst->inLSQ, inst->fuIndex);
+            if (discard_inst)
+            {
+                DPRINTF(MinorLoadPredictor, "Discarding mem inst: %s as its"
+                    " stream state was unexpected, expected: %d\n",
+                    *inst, ex_info.streamSeqNum);
+            } else {
+                DPRINTF(MinorLoadPredictor, "Commit inst as constant\n");
+                scoreboard[thread_id].validateConstantLoad(inst, cpu.getContext(thread_id));
+                // ExecContext context(cpu, *cpu.threads[thread_id], *this, inst);
+                // if (inst->traceData) {
+                //     inst->traceData->setPredicate(context.readPredicate());
+                // }
+
+                doInstCommitAccounting(inst);
+                /* Generate output to account for branches */
+                // tryToBranch(inst, fault, branch);
+                committed_inst = true;
+            }
+            //inst->inLSQ = false;
+            completed_mem_ref = true;
+            completed_inst = true;
         } else if (mem_response &&
             num_mem_refs_committed < memoryCommitLimit)
         {
@@ -1257,6 +1272,9 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
                 lsq.popResponse(mem_response);
             } else {
+                if(inst->executedAsConstant) {
+                    DPRINTF(MinorLoadPredictor, "Handling mem response of constant load %s.\n", *inst);
+                }
                 handleMemResponse(inst, mem_response, branch, fault);
                 committed_inst = true;
             }
