@@ -47,7 +47,6 @@
 #include "cpu/minor/cpu.hh"
 #include "cpu/minor/dyn_inst.hh"
 #include "cpu/minor/trace.hh"
-#include <unordered_map>
 
 namespace Minor
 {
@@ -120,10 +119,6 @@ class Scoreboard : public Named
      *  must match mark_unpredictable for the same inst. */
     void clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable);
 
-    void validateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context);
-
-    void invalidateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context);
-
     /** Returns the exec sequence number of the most recent inst on
      *  which the given inst depends.  Useful for determining which
      *  inst must actually be committed before a dependent inst
@@ -140,9 +135,6 @@ class Scoreboard : public Named
 
     /** MinorTraceIF interface */
     void minorTrace() const;
-
-  private:
-    std::unordered_map<Index, uint64_t> loadPredictedRegisters;
 };
 
 }

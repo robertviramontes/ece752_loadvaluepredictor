@@ -519,42 +519,10 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
 
         DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
 
-        // if (false & inst->staticInst->isLoad() && inst->loadPredicted == LVP_CONSTANT)
-        // {
-        //     if (cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr()))
-        //     {
-        //         // This is a valid constant load, don't need to do anything
-        //         DPRINTF(MinorLoadPredictor, "Could skip instruction %s memory reference\n", 
-        //             *inst);
-        //         scoreboard[inst->id.threadId].validateConstantLoad(inst, thread);
-        //     }
-        // }
-
         Fault init_fault = NoFault;
 
-        // if (inst->staticInst->isStore() && inst->effAddrValid)
-        // {
-        //     cpu.loadValuePredictor->processStoreAddress(inst->id.threadId, inst->effAddr);
-        // } else if (inst->staticInst->isStore() && !inst->effAddrValid)
-        // {
-        //     panic("Vaddr not available for a store inst\n");
-        // }
-
-
-        // auto canExecuteAsConstantLoad = inst->staticInst->isLoad() 
-        //                                     && inst->loadPredicted == LVP_CONSTANT 
-        //                                     && cpu.loadValuePredictor->processLoadAddress(inst->id.threadId, inst->pc.instAddr())
-        //                                     && inst->flatDestRegIdx->classValue() == IntRegClass;
-        // inst->executedAsConstant = canExecuteAsConstantLoad;
-        // if (canExecuteAsConstantLoad){
-        //     DPRINTF(MinorLoadPredictor, "Found instruction %s that can execute as constant\n", *inst);
-        //     // thread->pcState(old_pc);
-        //     // return true;
-        // }
-        // else if(inst->staticInst->isLoad()) {
-            init_fault = inst->staticInst->initiateAcc(&context,
-                    inst->traceData);
-        // }
+        init_fault = inst->staticInst->initiateAcc(&context,
+                inst->traceData);
 
         if (inst->inLSQ) {
             if (init_fault != NoFault) {
@@ -675,18 +643,12 @@ Execute::issue(ThreadID thread_id)
 
             issued = true;
             discarded = true;
-            if(inst->loadPredicted == LVP_CONSTANT) {
-                DPRINTF(MinorExecute, "Constant load PC: 0x%x being discarded\n", inst->pc.instAddr());
-            }
         } else if (inst->id.streamSeqNum != thread.streamSeqNum) {
             DPRINTF(MinorExecute, "Discarding inst: %s as its stream"
                 " state was unexpected, expected: %d\n",
                 *inst, thread.streamSeqNum);
             issued = true;
             discarded = true;
-            if(inst->loadPredicted == LVP_CONSTANT) {
-                DPRINTF(MinorExecute, "Constant load PC: 0x%x being discarded\n", inst->pc.instAddr());
-            }
         } else {
             /* Try and issue an instruction into an FU, assume we didn't and
              * fix that in the loop */
@@ -746,8 +708,8 @@ Execute::issue(ThreadID thread_id)
                     }
                 } else if (fu->stalled) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s into FU: %d,"
-                        " it's stalled on inst %s \n",
-                        *inst, fu_index, *fu->front().inst);
+                    " it's stalled\n",
+                        *inst, fu_index);
                 } else if (!fu->canInsert()) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s to busy FU"
                         " for another: %d cycles\n",
@@ -833,8 +795,6 @@ Execute::issue(ThreadID thread_id)
 
                                 inst->canEarlyIssue = true;
                             }
-
-
                             /* Also queue this instruction in the memory ref
                              *  queue to ensure in-order issue to the LSQ */
                             DPRINTF(MinorExecute, "Pushing mem inst: %s\n",
@@ -1227,33 +1187,6 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             /* Branch as there was a change in PC */
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
                 MinorDynInst::bubble(), thread->pcState(), branch);
-        } else if (false && inst->executedAsConstant &&
-            num_mem_refs_committed < memoryCommitLimit){
-            discard_inst = inst->id.streamSeqNum !=
-                           ex_info.streamSeqNum || discard;
-
-            DPRINTF(MinorLoadPredictor,"in lsq: %d, fuindex: %d\n", inst->inLSQ, inst->fuIndex);
-            if (discard_inst)
-            {
-                DPRINTF(MinorLoadPredictor, "Discarding mem inst: %s as its"
-                    " stream state was unexpected, expected: %d\n",
-                    *inst, ex_info.streamSeqNum);
-            } else {
-                DPRINTF(MinorLoadPredictor, "Commit inst as constant\n");
-                scoreboard[thread_id].validateConstantLoad(inst, cpu.getContext(thread_id));
-                // ExecContext context(cpu, *cpu.threads[thread_id], *this, inst);
-                // if (inst->traceData) {
-                //     inst->traceData->setPredicate(context.readPredicate());
-                // }
-
-                doInstCommitAccounting(inst);
-                /* Generate output to account for branches */
-                // tryToBranch(inst, fault, branch);
-                committed_inst = true;
-            }
-            //inst->inLSQ = false;
-            completed_mem_ref = true;
-            completed_inst = true;
         } else if (mem_response &&
             num_mem_refs_committed < memoryCommitLimit)
         {

@@ -1201,11 +1201,8 @@ LSQ::tryToSend(LSQRequestPtr request)
          *  so the response can be correctly handled */
         assert(packet->findNextSenderState<LSQRequest>());
 
+        /* If the request can be executed as a constant, respond with the loadPredictedValue*/
         if(request->inst->executedAsConstant) {
-            ThreadContext *thread =
-                cpu.getContext(cpu.contextToThread(
-                                request->request->contextId()));
-
             packet->setData((uint8_t *)&request->inst->loadPredictedValue);
 
             DPRINTF(MinorLoadPredictor, "Forwarded values on constant load %s.\n", *request->inst);
@@ -1691,6 +1688,7 @@ LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
         inst->effAddr = request->request->getVaddr();
     }
 
+    /* Send store instructions to LVP to invalidate CVU entries. */
     if (inst->staticInst->isStore() && inst->effAddrValid) {
         DPRINTF(MinorLoadPredictor, "Processing a store to CVU.\n");
         cpu.loadValuePredictor->processStoreAddress(request->inst->id.threadId, request->inst->effAddr);

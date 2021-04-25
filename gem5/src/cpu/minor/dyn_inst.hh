@@ -187,9 +187,12 @@ class MinorDynInst : public RefCounted
     /** Robert
      * Track if the load instruction was predicted and, if so, what the predicted value is.
      * Load prediction done in decode, acted upon by execute in scheduling and load value comparison. */
+    
+    /** The classification of the load prediction for this instruction. Only valid for loads. */
     LVPType loadPredicted;
 
-    uint64_t loadPredictedValue;
+    /** The register value to be forwarded in the load prediction, depending on how loadPredicted set. */
+    RegVal loadPredictedValue;
 
     /** Indicates that the processor executed this as a constant load, bypassing memory system */
     bool executedAsConstant = false;

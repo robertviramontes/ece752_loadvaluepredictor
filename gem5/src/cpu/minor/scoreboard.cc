@@ -39,7 +39,6 @@
 
 #include "arch/registers.hh"
 #include "cpu/reg_class.hh"
-#include "debug/MinorLoadPredictor.hh"
 #include "debug/MinorScoreboard.hh"
 #include "debug/MinorTiming.hh"
 
@@ -138,53 +137,6 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 fuIndices[index] = inst->fuIndex;
             }
 
-            // DPRINTF(MinorLoadPredictor, "Instruction %s has below registers:\n", *inst);
-            // for (int s = 0; s < inst->staticInst->numSrcRegs(); s++)
-            // {
-            //     DPRINTF(MinorLoadPredictor, "\t src register idx: %d\n", inst->staticInst->srcRegIdx(s));
-            // }
-            // for (int s = 0; s < inst->staticInst->numDestRegs(); s++)
-            // {
-            //     DPRINTF(MinorLoadPredictor, "\t dest register idx: %d\n", inst->staticInst->destRegIdx(s));
-            // }
-
-            if (false & inst->staticInst->isLoad())
-            {
-                /** ROBERT
-                 * If we're about to release a load instruction for execution, and it's
-                 * predictable or constant, we need to forward the value to subsequent instructions
-                 * and also remember it so that we can reverse it
-                 */
-                
-                // Let's really just focus on int and float registers for now, vec registers might be a pain
-                auto is_int = reg.classValue() == IntRegClass;
-                auto is_float = reg.classValue() == FloatRegClass;
-                if ((is_int || is_float) 
-                        && inst->loadPredicted == LVP_CONSTANT)
-                // For now, let's just consider constants since that doesn't require squashing the pipeline
-                //    && (inst->loadPredicted == LVP_CONSTANT || inst->loadPredicted == LVP_PREDICATABLE)) 
-                {
-                    DPRINTF(MinorLoadPredictor, "Forwarding value for instruction %s with %d dest registers.\n", *inst, num_dests);
-                    DPRINTF(MinorLoadPredictor, "Going to write %ld to register %d.\n", inst->loadPredictedValue, reg.flatIndex());
-                    
-                    if (is_int)
-                    {
-                        // Use the scoreboard index to store the replaced value
-                        loadPredictedRegisters[index] = thread_context->readIntRegFlat(reg.flatIndex());
-                        thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
-                    } 
-                    else if (is_float)
-                    {
-                        loadPredictedRegisters[index] = thread_context->readFloatRegFlat(reg.flatIndex());
-                        thread_context->setFloatRegFlat(reg.flatIndex(), inst->loadPredictedValue);
-                    }
-
-                    // Indicate that, even though this instruction is in-flight, the result is already
-                    // available in the registers.
-                    numResults[index]--; 
-                } 
-            }
-
             DPRINTF(MinorScoreboard, "Marking up inst: %s"
                 " regIndex: %d final numResults: %d returnCycle: %d\n",
                 *inst, index, numResults[index], returnCycle[index]);
@@ -192,44 +144,6 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
             /* Use ZeroReg to mark invalid/untracked dests */
             inst->flatDestRegIdx[dest_index] = RegId(IntRegClass,
                                                      TheISA::ZeroReg);
-        }
-    }
-}
-
-void
-Scoreboard::validateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context)
-{
-    RegId reg = flattenRegIndex(
-        inst->staticInst->destRegIdx(0), thread_context);
-    Index index;
-
-    if (findIndex(reg, index)) {
-        DPRINTF(MinorLoadPredictor, "Validating the constant on inst %s \n", *inst);
-        //numResults[index]--;
-        auto reg_type = reg.classValue();
-        if (reg_type == IntRegClass)
-        {
-            thread_context->setIntRegFlat(reg.flatIndex(), inst->loadPredictedValue);
-        } else if (reg_type == FloatRegClass) {
-            thread_context->setFloatRegFlat(reg.flatIndex(), inst->loadPredictedValue);
-        }
-    }
-}
-
-void
-Scoreboard::invalidateConstantLoad(MinorDynInstPtr inst,  ThreadContext *thread_context)
-{
-    RegId reg = flattenRegIndex(
-        inst->staticInst->destRegIdx(0), thread_context);
-    Index index;
-
-    if (findIndex(reg, index)) {
-        DPRINTF(MinorLoadPredictor, "Invalidating the constant on inst %s \n", *inst);
-        numResults[index]++;
-        auto reg_type = reg.classValue();
-        if (reg_type == IntRegClass)
-        {
-            thread_context->setIntRegFlat(reg.flatIndex(), loadPredictedRegisters[index]);
         }
     }
 }
@@ -257,7 +171,7 @@ Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
         }
     }
 
-    DPRINTF(MinorScoreboard, "Inst: %s depends on fexecSeqNum: %d\n",
+    DPRINTF(MinorScoreboard, "Inst: %s depends on execSeqNum: %d\n",
         *inst, ret);
 
     return ret;
@@ -289,19 +203,6 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
                 returnCycle[index] = Cycles(0);
                 writingInst[index] = 0;
                 fuIndices[index] = -1;
-            }
-            
-            if (inst->staticInst->isLoad())
-            {
-                /** ROBERT
-                 * We're clearing an instruction from the scoreboard, indicating that it has comitted
-                 * and that we can clear it's entry from the map of load predicted registers.
-                 */
-                if (inst->loadPredicted == LVP_CONSTANT) // || inst->loadPredicted == LVP_PREDICATABLE) 
-                {
-                    // Remove the entry associated with the scoreboard reg index
-                    loadPredictedRegisters.erase(index);
-                } 
             }
 
             DPRINTF(MinorScoreboard, "Clearing inst: %s"
