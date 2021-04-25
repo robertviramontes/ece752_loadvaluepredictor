@@ -107,16 +107,16 @@ LoadValuePredictionUnit::lookupLVPTIndex(ThreadID tid, Addr pc) {
 }
 
 bool 
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc) {
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr load_address) {
 
     Addr lvpt_index = loadValuePredictionTable->getIndex(pc, tid);
-    return processLoadAddress(tid, pc, lvpt_index);
+    return processLoadAddress(tid, pc, load_address, lvpt_index);
 }
 
 bool 
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index) {
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr load_address, Addr lvpt_index) {
 
-    bool ret = constantVerificationUnit->processLoadAddress(pc, lvpt_index, tid);
+    bool ret = constantVerificationUnit->processLoadAddress(load_address, lvpt_index, tid);
     if(!ret) {
         // Load is not in the CVU CAM... Invalidate the const state in the LCT
 

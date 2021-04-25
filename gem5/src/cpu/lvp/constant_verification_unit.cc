@@ -36,15 +36,15 @@ void ConstantVerificationUnit::processStoreAddress(ThreadID tid,
 	}
 }
 
-bool ConstantVerificationUnit::processLoadAddress(Addr pc, 
+bool ConstantVerificationUnit::processLoadAddress(Addr load_address, 
 													Addr lvptIndex,
 													ThreadID tid) {
 	// Both load address and LVPT index have to be searched
 	auto itr = _cvuCAM[(uint16_t)tid%64].begin();
 	while (itr != _cvuCAM[(uint16_t)tid%64].end()) {
 		struct CAMEntry temp = *itr;
-		if (temp.pc == pc && temp.lvpt_index == lvptIndex) {
-			DPRINTF(CVU, "[TID %d] Load instruction: 0x%x matched in CVU CAM\n", tid, pc);
+		if (temp.load_address == load_address && temp.lvpt_index == lvptIndex) {
+			DPRINTF(CVU, "[TID %d] Load address: 0x%x matched in CVU CAM\n", tid, load_address);
 			++_numConstantHits;
 			// Update the end time of this entry (for replacement purposes)
 			itr->access = std::chrono::high_resolution_clock::now();
@@ -53,7 +53,7 @@ bool ConstantVerificationUnit::processLoadAddress(Addr pc,
 		itr++;
 	}
 	++_numConstantMiss;
-	DPRINTF(CVU, "[TID %d] Load instruction: 0x%x not found in CVU CAM\n", tid, pc);
+	DPRINTF(CVU, "[TID %d] Load load_address: 0x%x not found in CVU CAM\n", tid, load_address);
 	return false;
 }
 
