@@ -1,0 +1,72 @@
+The search results are (1) LRU (2) NLRU (3) MRU (4) NMRU
+
+system.cpu.ipc                               0.038917                       
+system.cpu.ipc                               0.038917                       
+system.cpu.ipc                               0.038890                       
+system.cpu.ipc                               0.038917                       
+
+system.cpu.loadValPred.numConstLoads          1182857                       
+system.cpu.loadValPred.numConstLoads          1182873                       
+system.cpu.loadValPred.numConstLoads           909457                       
+system.cpu.loadValPred.numConstLoads          1182890                       
+
+system.cpu.loadValPred.constant_verification_unit.constLoadHits      1176911                       
+system.cpu.loadValPred.constant_verification_unit.constLoadHits      1176991                       
+system.cpu.loadValPred.constant_verification_unit.constLoadHits       357111                       
+system.cpu.loadValPred.constant_verification_unit.constLoadHits      1177047                       
+
+system.cpu.loadValPred.numPredictableLoads      1187114                       
+system.cpu.loadValPred.numPredictableLoads      1187143                       
+system.cpu.loadValPred.numPredictableLoads       913291                       
+system.cpu.loadValPred.numPredictableLoads      1187181                       
+
+system.cpu.loadValPred.constant_verification_unit.numStoreHits          766                       
+system.cpu.loadValPred.constant_verification_unit.numStoreHits          679                       
+system.cpu.loadValPred.constant_verification_unit.numStoreHits          165                       
+system.cpu.loadValPred.constant_verification_unit.numStoreHits          764                       
+
+system.cpu.loadValPred.constant_verification_unit.numCAMReplacements      1182214                       
+system.cpu.loadValPred.constant_verification_unit.numCAMReplacements      1182327                       
+system.cpu.loadValPred.constant_verification_unit.numCAMReplacements       909444                       
+system.cpu.loadValPred.constant_verification_unit.numCAMReplacements      1182265                       
+
+system.cpu.loadValPred.numPredictableLoadsCorrect      1182198                       
+system.cpu.loadValPred.numPredictableLoadsCorrect      1182225                       
+system.cpu.loadValPred.numPredictableLoadsCorrect       908745                       
+system.cpu.loadValPred.numPredictableLoadsCorrect      1182250                       
+
+system.cpu.loadValPred.totalLoads             2426108                       
+system.cpu.loadValPred.totalLoads             2426103                       
+system.cpu.loadValPred.totalLoads             2426566                       
+system.cpu.loadValPred.totalLoads             2426103                       
+
+system.cpu.icache.overall_accesses::total      4099317                       
+system.cpu.icache.overall_accesses::total      4099319                       
+system.cpu.icache.overall_accesses::total      4099582                       
+system.cpu.icache.overall_accesses::total      4099317                       
+
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+system.cpu.icache.overall_miss_rate::total     0.000441                       
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+
+system.cpu.dcache.overall_accesses::total     15922150                       
+system.cpu.dcache.overall_accesses::total     15922064                       
+system.cpu.dcache.overall_accesses::total     16740473                       
+system.cpu.dcache.overall_accesses::total     15922015                       
+
+system.l2.overall_accesses::total             1838550                       
+system.l2.overall_accesses::total             1838550                       
+system.l2.overall_accesses::total             1838380                       
+system.l2.overall_accesses::total             1838550                       
+
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+system.cpu.icache.overall_miss_rate::total     0.000441                       
+system.cpu.icache.overall_miss_rate::total     0.000435                       
+
+system.l2.overall_miss_rate::total           0.999617                       
+system.l2.overall_miss_rate::total           0.999617                       
+system.l2.overall_miss_rate::total           0.999616                       
+system.l2.overall_miss_rate::total           0.999617                       
+

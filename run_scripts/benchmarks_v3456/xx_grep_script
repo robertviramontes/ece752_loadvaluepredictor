@@ -1,0 +1,30 @@
+echo "The search results are (1) LRU (2) NLRU (3) MRU (4) NMRU"
+echo ""
+grep -iwh "system.cpu.ipc" 								benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numConstLoads" 					benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.constLoadHits" 		benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numPredictableLoads" 					benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.numStoreHits" 		benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.numCAMReplacements" 	benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numPredictableLoadsCorrect" 				benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.totalLoads" 						benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.icache.overall_accesses::total" 					benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.icache.overall_miss_rate::total"				 	benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.dcache.overall_accesses::total" 					benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.l2.overall_accesses::total" 	                                        benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.icache.overall_miss_rate::total"                                   benchmarks_w_lvp_*/$1/stats.txt
+echo ""
+grep -iwh "system.l2.overall_miss_rate::total"                                           benchmarks_w_lvp_*/$1/stats.txt
+echo ""

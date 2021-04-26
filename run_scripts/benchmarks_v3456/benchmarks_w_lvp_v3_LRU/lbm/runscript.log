@@ -1,0 +1,15 @@
+Command line:
+./run_gem5_x86_spec06_benchmark.sh lbm 300 test.file 0 0
+================= Hardcoded directories ==================
+GEM5_DIR:                                     /u/v/b/vbaoni/prajyotg/final_LVP/ece752_loadvaluepredictor/run_scripts/../gem5
+SPEC_DIR:                                     /p/prometheus/private/adarsh1/spec2006_apps
+==================== Script inputs =======================
+BENCHMARK:                                    lbm
+OUTPUT_DIR:                                   /u/v/b/vbaoni/prajyotg/final_LVP/ece752_loadvaluepredictor/run_scripts/benchmarks_w_lvp_LRU/lbm
+==========================================================
+Changing to SPEC benchmark runtime directory:     /p/prometheus/private/adarsh1/spec2006_apps/lbm/run/run_base_ref_i386-m32-gcc42-nn.0000
+
+
+--------- Here goes nothing! Starting gem5! ------------
+
+
