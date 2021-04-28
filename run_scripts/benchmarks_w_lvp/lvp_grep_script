@@ -1,0 +1,31 @@
+echo "This plainly greps the below parameters in directories benchmarks_w_lvp_v3_LRU ; v4_NLRU;" 
+echo "The search results are (1) LRU (2) NLRU (3) MRU (4) NMRU"
+echo ""
+grep -iwh "system.cpu.ipc" 								v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numConstLoads" 					v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.constLoadHits" 		v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numPredictableLoads" 					v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.numStoreHits" 		v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.constant_verification_unit.numCAMReplacements" 	v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.numPredictableLoadsCorrect" 				v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.loadValPred.totalLoads" 						v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.icache.overall_accesses::total" 					v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.icache.overall_miss_rate::total"				 	v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.dcache.overall_accesses::total" 					v*/$1/stats.txt
+echo ""
+grep -iwh "system.l2.overall_accesses::total" 	                                        v*/$1/stats.txt
+echo ""
+grep -iwh "system.cpu.dcache.overall_miss_rate::total"                                  v*/$1/stats.txt
+echo ""
+grep -iwh "system.l2.overall_miss_rate::total"                                          v*/$1/stats.txt
+echo ""
