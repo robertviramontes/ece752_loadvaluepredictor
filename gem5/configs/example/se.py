@@ -244,18 +244,18 @@ for i in range(np):
             ObjectList.indirect_bp_list.get(options.indirect_bp_type)
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
 
-    if cpu[i].loadValuePredictor:
+    if cpu[i].loadValPred:
         # lct
-        cpu[i].loadValuePredictor.load_classification_table.localPredictorSize = options.lct_entries
-        cpu[i].loadValuePredictor.load_classification_table.localCtrBits = options.lct_ctr_bits
+        cpu[i].loadValPred.load_classification_table.localPredictorSize = options.lct_entries
+        cpu[i].loadValPred.load_classification_table.localCtrBits = options.lct_ctr_bits
         if options.lct_invalidate_zero:
-            cpu[i].loadValuePredictor.load_classification_table.invalidateConstToZero = True
+            cpu[i].loadValPred.load_classification_table.invalidateConstToZero = True
         # lvpt
-        cpu[i].loadValuePredictor.load_value_prediction_table.entries = options.lvpt_entries
-        cpu[i].loadValuePredictor.load_value_prediction_table.historyDepth = options.lvpt_hist_depth
+        cpu[i].loadValPred.load_value_prediction_table.entries = options.lvpt_entries
+        cpu[i].loadValPred.load_value_prediction_table.historyDepth = options.lvpt_hist_depth
         # cvu
-        cpu[i].loadValuePredictor.constant_verification_unit.entries = options.cvu_entries
-        cpu[i].loadValuePredictor.constant_verification_unit.replacementPolicy = options.cvu_replacement
+        cpu[i].loadValPred.constant_verification_unit.entries = options.cvu_entries
+        cpu[i].loadValPred.constant_verification_unit.replacementPolicy = options.cvu_replacement
         
 
     system.cpu[i].createThreads()

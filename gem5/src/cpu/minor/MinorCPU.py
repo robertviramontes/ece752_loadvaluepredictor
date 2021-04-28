@@ -285,7 +285,7 @@ class MinorCPU(BaseCPU):
     branchPred = Param.BranchPredictor(TournamentBP(
         numThreads = Parent.numThreads), "Branch Predictor")
 
-    loadValuePredictor = Param.LoadValuePredictionUnit(LoadValuePredictionUnit(), "Load value predictor")
+    loadValPred = Param.LoadValuePredictionUnit(LoadValuePredictionUnit(), "Load value predictor")
 
     def addCheckerCpu(self):
         print("Checker not yet supported by MinorCPU")

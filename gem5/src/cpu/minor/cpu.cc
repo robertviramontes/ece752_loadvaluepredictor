@@ -48,7 +48,7 @@
 MinorCPU::MinorCPU(MinorCPUParams *params) :
     BaseCPU(params),
     threadPolicy(params->threadPolicy),
-    loadValuePredictor(params->loadValuePredictor)
+    loadValuePredictor(params->loadValPred)
 {
     /* This is only written for one thread at the moment */
     Minor::MinorThread *thread;
