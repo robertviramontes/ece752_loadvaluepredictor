@@ -58,6 +58,7 @@ addToPath('../')
 from ruby import Ruby
 
 from common import Options
+from common import LvpOptions
 from common import Simulation
 from common import CacheConfig
 from common import CpuConfig
@@ -121,6 +122,7 @@ def get_processes(options):
 parser = optparse.OptionParser()
 Options.addCommonOptions(parser)
 Options.addSEOptions(parser)
+LvpOptions.addLvpOptions(parser)
 
 if '--ruby' in sys.argv:
     Ruby.define_options(parser)
@@ -241,6 +243,20 @@ for i in range(np):
         indirectBPClass = \
             ObjectList.indirect_bp_list.get(options.indirect_bp_type)
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
+
+    if cpu[i].loadValuePredictor:
+        # lct
+        cpu[i].loadValuePredictor.load_classification_table.localPredictorSize = options.lct_entries
+        cpu[i].loadValuePredictor.load_classification_table.localCtrBits = options.lct_ctr_bits
+        if options.lct_invalidate_zero:
+            cpu[i].loadValuePredictor.load_classification_table.invalidateConstToZero = True
+        # lvpt
+        cpu[i].loadValuePredictor.load_value_prediction_table.entries = options.lvpt_entries
+        cpu[i].loadValuePredictor.load_value_prediction_table.historyDepth = options.lvpt_hist_depth
+        # cvu
+        cpu[i].loadValuePredictor.constant_verification_unit.entries = options.cvu_entries
+        cpu[i].loadValuePredictor.constant_verification_unit.replacementPolicy = options.cvu_replacement
+        
 
     system.cpu[i].createThreads()
 
