@@ -413,18 +413,19 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
                         inst->loadPredictedValue,
                         inst->loadPredicted);
 
-                
-                // if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICATABLE)
-                // {
-                //     // TODO the instruction was incorrectly predicted, we need to rewind this instruction
-                //     // and any dependent instructions that used this value
-                //     DPRINTF(MinorLoadPredictor, "Predicted the wrong value, need to fix up!\n");
-                //     auto reg_id = thread->flattenRegId(inst->staticInst->destRegIdx(0));
-                //     thread->setIntRegFlat(reg_id.flatIndex(), mem);
-                //     BranchData &lvpResetTarget = *out.inputWire;
+                /* Experimenting with predictable forwarding
+                if (!load_predicted_correctly && inst->loadPredicted == LVP_PREDICTABLE)
+                {
+                    // TODO the instruction was incorrectly predicted, we need to rewind this instruction
+                    // and any dependent instructions that used this value
+                    DPRINTF(MinorLoadPredictor, "Predicted the wrong value, need to fix up!\n");
+                    auto reg_id = thread->flattenRegId(inst->staticInst->destRegIdx(0));
+                    thread->setIntRegFlat(reg_id.flatIndex(), mem);
+                    BranchData &lvpResetTarget = *out.inputWire;
 
-                //     updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
-                // }
+                    updateBranchData(thread_id, BranchData::UnpredictedBranch, inst, inst->pc.nextInstAddr(), lvpResetTarget);
+                }
+                */
             }
         }
 
@@ -988,6 +989,26 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
         bool completed_mem_inst = executeMemRefInst(inst, branch,
             predicate_passed, fault);
 
+        /* Experiments with forwarding load values
+        if (inst->staticInst->isLoad() && inst->loadPredicted == LVP_PREDICTABLE) {
+            bool could_forward = true;
+            switch (inst->flatDestRegIdx->classValue()) {
+                case IntRegClass:
+                    thread->setIntRegFlat(inst->flatDestRegIdx->flatIndex(), inst->loadPredictedValue);
+                    break;
+                case FloatRegClass:
+                    thread->setFloatRegFlat(inst->flatDestRegIdx->flatIndex(), inst->loadPredictedValue);
+                    break;
+                default:
+                    could_forward = false;
+            }
+            if (could_forward)
+                scoreboard[inst->id.threadId].clearInstDests(inst, inst->isMemRef());
+            
+            completed_mem_inst = could_forward;
+        }
+        */
+        
         if (completed_mem_inst && fault != NoFault) {
             if (early_memory_issue) {
                 DPRINTF(MinorExecute, "Fault in early executing inst: %s\n",
