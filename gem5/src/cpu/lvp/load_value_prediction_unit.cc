@@ -71,6 +71,9 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
      * LCT:  lct::update(pc, tid) retval lctResult
      * CVU: if(lctResult = constant) updateCVU(pc, tid, pc[9:2], load_address);
      */
+
+    totalVerified++;
+
     if(predicted_val != correct_val && classification == LVP_PREDICTABLE) {
         // Stats for predictable loads here
         numPredictableIncorrect++;
@@ -168,4 +171,7 @@ LoadValuePredictionUnit::regStats() {
 
     totalLoads.name(name() + ".totalLoads")
               .desc("Total loads processed by the Load value predictor");
+        
+    totalVerified.name(name() + ".totalVerified")
+                 .desc("Total loads verified at the commit stage");
 }
