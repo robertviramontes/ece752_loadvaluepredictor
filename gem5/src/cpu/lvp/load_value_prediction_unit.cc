@@ -19,7 +19,7 @@ LoadValuePredictionUnit::LoadValuePredictionUnit(LoadValuePredictionUnitParams *
     constantVerificationUnit(params->constant_verification_unit),
     numPredictableLoads(0), numPredictableCorrect(0), numPredictableIncorrect(0),
     numConstLoads(0), numConstLoadsMispredicted(0), numConstLoadsCorrect(0),
-    totalLoads(0)
+    totalLoads(0), numZeroConstLoads(0), numOneConstLoads(0)
 {
     DPRINTF(LVP, "Created the LVP\n");
     panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
@@ -43,6 +43,8 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     {
         DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
             tid, inst_addr, lvptResult);
+        if(lvptResult == 0) numZeroConstLoads++;
+        else if(lvptResult == 1) numOneConstLoads++;
     }
 
     // Stat collection
@@ -161,4 +163,10 @@ LoadValuePredictionUnit::regStats() {
 
     totalLoads.name(name() + ".totalLoads")
               .desc("Total loads processed by the Load value predictor");
+
+    numZeroConstLoads.name(name() + ".numConstValZero")
+                     .desc("Number of constant loads with value 0");
+
+    numOneConstLoads.name(name() + ".numConstValOne")
+                    .desc("Number of constant loads with value 1");
 }
