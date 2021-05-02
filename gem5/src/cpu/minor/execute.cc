@@ -520,9 +520,7 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
 
         DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
 
-        Fault init_fault = NoFault;
-
-        init_fault = inst->staticInst->initiateAcc(&context,
+        Fault init_fault = inst->staticInst->initiateAcc(&context,
                 inst->traceData);
 
         if (inst->inLSQ) {
