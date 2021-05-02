@@ -1043,6 +1043,13 @@ LSQ::tryToSendToTransfers(LSQRequestPtr request)
             return;
         }
     } else {
+
+        /* Send store instructions to LVP to invalidate CVU entries. */
+        if (request->inst->staticInst->isStore() && request->request->hasVaddr()) {
+            DPRINTF(MinorLoadPredictor, "Processing a store to CVU.\n");
+            cpu.loadValuePredictor->processStoreAddress(request->inst->id.threadId, request->request->getVaddr());
+        }
+
         /* Store.  Can it be sent to the store buffer? */
         if (bufferable && !request->request->isLocalAccess()) {
             request->setState(LSQRequest::StoreToStoreBuffer);
@@ -1687,13 +1694,6 @@ LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
         inst->effAddrValid = request->request->hasVaddr();
         inst->effAddr = request->request->getVaddr();
     }
-
-    /* Send store instructions to LVP to invalidate CVU entries. */
-    if (inst->staticInst->isStore() && inst->effAddrValid) {
-        DPRINTF(MinorLoadPredictor, "Processing a store to CVU.\n");
-        cpu.loadValuePredictor->processStoreAddress(request->inst->id.threadId, request->inst->effAddr);
-    }
-
 
     return inst->translationFault;
 }
