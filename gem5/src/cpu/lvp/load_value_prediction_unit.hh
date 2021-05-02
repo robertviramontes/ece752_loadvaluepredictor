@@ -43,6 +43,9 @@ class LoadValuePredictionUnit : public SimObject
     Stats::Scalar totalLoads;
     Stats::Scalar totalVerified;
 
+    Stats::Scalar numZeroConstLoads;
+    Stats::Scalar numOneConstLoads;
+
   public:
     LoadValuePredictionUnit(LoadValuePredictionUnitParams *p);
 
