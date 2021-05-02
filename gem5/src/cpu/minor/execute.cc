@@ -707,7 +707,7 @@ Execute::issue(ThreadID thread_id)
                     }
                 } else if (fu->stalled) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s into FU: %d,"
-                    " it's stalled\n",
+                        " it's stalled\n",
                         *inst, fu_index);
                 } else if (!fu->canInsert()) {
                     DPRINTF(MinorExecute, "Can't issue inst: %s to busy FU"
